@@ -37,7 +37,8 @@ export default function NewGameModal({ onClose, onCreate }: Props) {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full min-w-0 max-w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="block w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              style={{ boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', minWidth: 0, maxWidth: '100%' }}
             />
           </div>
 
