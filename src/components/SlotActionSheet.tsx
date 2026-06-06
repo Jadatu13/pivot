@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { UserX, AlertTriangle, Trash2, MessageSquare } from 'lucide-react';
+import { UserX, AlertTriangle, Trash2, MessageSquare, Lock } from 'lucide-react';
 
 interface Props {
   playerName: string;
   slot: string;
   hasInjury: boolean;
   note?: string;
+  captainNote?: string;
   onChangePlayer: () => void;
   onMarkInjury: () => void;
   onClear: () => void;
   onClose: () => void;
   onNoteChange: (note: string) => void;
+  onCaptainNoteChange: (note: string) => void;
 }
 
 export default function SlotActionSheet({
@@ -18,17 +20,22 @@ export default function SlotActionSheet({
   slot,
   hasInjury,
   note,
+  captainNote,
   onChangePlayer,
   onMarkInjury,
   onClear,
   onClose,
   onNoteChange,
+  onCaptainNoteChange,
 }: Props) {
   const [localNote, setLocalNote] = useState(note ?? '');
   const [showNote, setShowNote] = useState(!!note);
+  const [localCaptainNote, setLocalCaptainNote] = useState(captainNote ?? '');
+  const [showCaptainNote, setShowCaptainNote] = useState(!!captainNote);
 
   function handleClose() {
     onNoteChange(localNote.trim());
+    onCaptainNoteChange(localCaptainNote.trim());
     onClose();
   }
 
@@ -85,12 +92,50 @@ export default function SlotActionSheet({
                 autoFocus
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
+              <p className="text-xs text-slate-400 mt-1">Visible to everyone you share with.</p>
               {localNote && (
                 <button
                   onClick={() => { setLocalNote(''); onNoteChange(''); }}
                   className="mt-1 text-xs text-slate-400 underline"
                 >
                   Clear note
+                </button>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowCaptainNote((v) => !v)}
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left text-amber-700 font-medium active:bg-amber-50"
+          >
+            <Lock size={18} className="text-amber-500" />
+            {localCaptainNote ? 'Edit private note' : 'Add private note'}
+            {localCaptainNote && (
+              <span className="ml-auto text-xs text-slate-400 truncate max-w-[120px]">{localCaptainNote}</span>
+            )}
+          </button>
+
+          {showCaptainNote && (
+            <div className="px-3 pb-1">
+              <input
+                type="text"
+                value={localCaptainNote}
+                onChange={(e) => setLocalCaptainNote(e.target.value)}
+                onBlur={() => onCaptainNoteChange(localCaptainNote.trim())}
+                placeholder="e.g. personal reason — keep private"
+                autoFocus
+                className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                <Lock size={11} />
+                Captain only — never shared with the team.
+              </p>
+              {localCaptainNote && (
+                <button
+                  onClick={() => { setLocalCaptainNote(''); onCaptainNoteChange(''); }}
+                  className="mt-1 text-xs text-slate-400 underline"
+                >
+                  Clear private note
                 </button>
               )}
             </div>

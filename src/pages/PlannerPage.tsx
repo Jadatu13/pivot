@@ -23,6 +23,7 @@ export default function PlannerPage() {
   const assignPlayer = useAppStore((s) => s.assignPlayer);
   const copyQuarter = useAppStore((s) => s.copyQuarter);
   const setSlotNote = useAppStore((s) => s.setSlotNote);
+  const setCaptainNote = useAppStore((s) => s.setCaptainNote);
   const addMidGameInjury = useAppStore((s) => s.addMidGameInjury);
   const removeMidGameInjury = useAppStore((s) => s.removeMidGameInjury);
   const updateGame = useAppStore((s) => s.updateGame);
@@ -263,6 +264,7 @@ export default function PlannerPage() {
                 }
                 onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
                 onSetNote={(slot, note) => setSlotNote(activeGame.id, quarter, slot, note)}
+                onSetCaptainNote={(slot, note) => setCaptainNote(activeGame.id, quarter, slot, note)}
               />
 
               <SmartSuggestions tips={tips} />
@@ -289,6 +291,7 @@ export default function PlannerPage() {
                 }
                 onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
                 onSetNote={(q, slot, note) => setSlotNote(activeGame.id, q, slot, note)}
+                onSetCaptainNote={(q, slot, note) => setCaptainNote(activeGame.id, q, slot, note)}
               />
             </>
           )}

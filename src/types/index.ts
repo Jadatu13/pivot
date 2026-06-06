@@ -49,5 +49,7 @@ export interface Game {
   opponent?: string;
   quarters: Record<Quarter, QuarterLineup>;
   quarterNotes?: Record<Quarter, QuarterNotes>;
+  /** Private notes visible only to the captain — never shared with the team */
+  captainNotes?: Record<Quarter, QuarterNotes>;
   midGameInjuries: GameInjury[];
 }

@@ -13,6 +13,7 @@ interface Props {
   onAddInjury: (quarter: Quarter, playerId: string, description: string) => void;
   onRemoveInjury: (playerId: string) => void;
   onSetNote: (quarter: Quarter, slot: SlotKey, note: string) => void;
+  onSetCaptainNote: (quarter: Quarter, slot: SlotKey, note: string) => void;
 }
 
 type CellTarget = { quarter: Quarter; slot: SlotKey };
@@ -24,7 +25,7 @@ const ZONE_STYLES: Record<string, { badge: string }> = {
   sub:     { badge: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
 
-export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury, onSetNote }: Props) {
+export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury, onSetNote, onSetCaptainNote }: Props) {
   const [pickerTarget, setPickerTarget] = useState<CellTarget | null>(null);
   const [actionTarget, setActionTarget] = useState<CellTarget | null>(null);
   const [injuryTarget, setInjuryTarget] = useState<{ playerId: string; name: string; quarter: Quarter } | null>(null);
@@ -88,6 +89,7 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
                 const isInjured = player ? injuredByQ[q].has(player.id) : false;
                 const injury = player ? game.midGameInjuries.find((i) => i.playerId === player.id) : null;
                 const note = game.quarterNotes?.[q]?.[slot];
+                const captainNote = game.captainNotes?.[q]?.[slot];
 
                 return (
                   <button
@@ -110,6 +112,9 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
                     )}
                     {note && (
                       <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-violet-400" />
+                    )}
+                    {captainNote && (
+                      <span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-amber-400" />
                     )}
                   </button>
                 );
@@ -190,6 +195,7 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
           slot={actionTarget.slot}
           hasInjury={injuredByQ[actionTarget.quarter].has(actionPlayer.id)}
           note={game.quarterNotes?.[actionTarget.quarter]?.[actionTarget.slot]}
+          captainNote={game.captainNotes?.[actionTarget.quarter]?.[actionTarget.slot]}
           onChangePlayer={() => setPickerTarget(actionTarget)}
           onMarkInjury={() =>
             setInjuryTarget({ playerId: actionPlayer.id, name: actionPlayer.name, quarter: actionTarget.quarter })
@@ -197,6 +203,7 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
           onClear={() => onAssign(actionTarget.quarter, actionTarget.slot, undefined)}
           onClose={() => setActionTarget(null)}
           onNoteChange={(note) => onSetNote(actionTarget.quarter, actionTarget.slot, note)}
+          onCaptainNoteChange={(note) => onSetCaptainNote(actionTarget.quarter, actionTarget.slot, note)}
         />
       )}
 

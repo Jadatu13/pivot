@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import DateField from './DateField';
 
 interface Props {
   onClose: () => void;
@@ -32,14 +33,7 @@ export default function NewGameModal({ onClose, onCreate }: Props) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              className="block w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              style={{ boxSizing: 'border-box', WebkitAppearance: 'none', appearance: 'none', minWidth: 0, maxWidth: '100%' }}
-            />
+            <DateField value={date} onChange={setDate} />
           </div>
 
           <div>

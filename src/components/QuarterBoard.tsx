@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Star, AlertTriangle } from 'lucide-react';
+import { Plus, Star, AlertTriangle, Lock } from 'lucide-react';
 import type { Game, Player, Quarter, SlotKey } from '../types';
 import { ALL_SLOTS, POSITION_LABELS, POSITIONS, POSITION_ZONE } from '../types';
 import { getMidGameInjuredIds } from '../utils/suggestions';
@@ -15,6 +15,7 @@ interface Props {
   onAddInjury: (quarter: Quarter, playerId: string, description: string) => void;
   onRemoveInjury: (playerId: string) => void;
   onSetNote: (slot: SlotKey, note: string) => void;
+  onSetCaptainNote: (slot: SlotKey, note: string) => void;
 }
 
 const ZONE_COLOURS: Record<string, { bg: string; text: string; border: string }> = {
@@ -24,7 +25,7 @@ const ZONE_COLOURS: Record<string, { bg: string; text: string; border: string }>
   sub: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
 };
 
-export default function QuarterBoard({ game, quarter, players, onAssign, onAddInjury, onRemoveInjury, onSetNote }: Props) {
+export default function QuarterBoard({ game, quarter, players, onAssign, onAddInjury, onRemoveInjury, onSetNote, onSetCaptainNote }: Props) {
   const [pickerSlot, setPickerSlot] = useState<SlotKey | null>(null);
   const [actionSlot, setActionSlot] = useState<SlotKey | null>(null);
   const [injuryForPlayer, setInjuryForPlayer] = useState<{ playerId: string; name: string } | null>(null);
@@ -60,6 +61,7 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
           const injury = player ? game.midGameInjuries.find((i) => i.playerId === player.id) : null;
           const hasPreGameInjury = player?.activeInjury;
           const note = game.quarterNotes?.[quarter]?.[slot];
+          const captainNote = game.captainNotes?.[quarter]?.[slot];
 
           return (
             <button
@@ -94,6 +96,12 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
                     </div>
                     {note && (
                       <p className="text-xs text-slate-400 mt-0.5 truncate">{note}</p>
+                    )}
+                    {captainNote && (
+                      <p className="text-xs text-amber-600 mt-0.5 truncate flex items-center gap-1">
+                        <Lock size={10} className="flex-shrink-0" />
+                        {captainNote}
+                      </p>
                     )}
                   </div>
                 ) : (
@@ -136,11 +144,13 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
           slot={actionSlot}
           hasInjury={injuredIds.has(actionPlayer.id)}
           note={game.quarterNotes?.[quarter]?.[actionSlot]}
+          captainNote={game.captainNotes?.[quarter]?.[actionSlot]}
           onChangePlayer={() => setPickerSlot(actionSlot)}
           onMarkInjury={() => setInjuryForPlayer({ playerId: actionPlayer.id, name: actionPlayer.name })}
           onClear={() => onAssign(actionSlot, undefined)}
           onClose={() => setActionSlot(null)}
           onNoteChange={(note) => onSetNote(actionSlot, note)}
+          onCaptainNoteChange={(note) => onSetCaptainNote(actionSlot, note)}
         />
       )}
 

@@ -25,13 +25,17 @@ export function buildShareUrl(gameId: string): string {
   return `${window.location.origin}/share/${gameId}`;
 }
 
-/** Sync game+players to Vercel KV so shared links stay live */
+/** Sync game+players to Vercel KV so shared links stay live.
+ *  Captain's private notes are stripped so they never leave the device. */
 export async function syncGameToServer(data: ShareData): Promise<void> {
   try {
+    // Never include captainNotes in the shared payload
+    const { captainNotes: _omit, ...sharedGame } = data.game;
+    const payload: ShareData = { game: sharedGame, players: data.players };
     await fetch(`/api/game/${data.game.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   } catch {
     // silently fail — app works fully offline without sync

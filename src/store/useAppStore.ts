@@ -23,6 +23,7 @@ interface AppStore {
   assignPlayer: (gameId: string, quarter: Quarter, slot: SlotKey, playerId: string | undefined) => void;
   copyQuarter: (gameId: string, from: Quarter, to: Quarter) => void;
   setSlotNote: (gameId: string, quarter: Quarter, slot: SlotKey, note: string) => void;
+  setCaptainNote: (gameId: string, quarter: Quarter, slot: SlotKey, note: string) => void;
 
   addMidGameInjury: (gameId: string, injury: GameInjury) => void;
   removeMidGameInjury: (gameId: string, playerId: string) => void;
@@ -53,7 +54,7 @@ export const useAppStore = create<AppStore>()(
         const id = crypto.randomUUID();
         set((s) => ({
           games: [
-            { id, date, opponent, quarters: emptyQuarters(), quarterNotes: emptyNotes(), midGameInjuries: [] },
+            { id, date, opponent, quarters: emptyQuarters(), quarterNotes: emptyNotes(), captainNotes: emptyNotes(), midGameInjuries: [] },
             ...s.games,
           ],
           activeGameId: id,
@@ -117,6 +118,21 @@ export const useAppStore = create<AppStore>()(
           }),
         })),
 
+      setCaptainNote: (gameId, quarter, slot, note) =>
+        set((s) => ({
+          games: s.games.map((g) => {
+            if (g.id !== gameId) return g;
+            const notes = g.captainNotes ?? emptyNotes();
+            return {
+              ...g,
+              captainNotes: {
+                ...notes,
+                [quarter]: { ...notes[quarter], [slot]: note || undefined },
+              },
+            };
+          }),
+        })),
+
       addMidGameInjury: (gameId, injury) =>
         set((s) => ({
           games: s.games.map((g) => {
@@ -137,7 +153,7 @@ export const useAppStore = create<AppStore>()(
     }),
     {
       name: 'pivot-v1',
-      version: 2,
+      version: 3,
       migrate: (stored: any, fromVersion: number) => {
         if (fromVersion === 0 && (!stored.players || stored.players.length === 0)) {
           stored = { ...stored, players: DEFAULT_PLAYERS };
@@ -153,6 +169,16 @@ export const useAppStore = create<AppStore>()(
             games: (stored.games ?? []).map((g: any) => ({
               ...g,
               quarterNotes: g.quarterNotes ?? emptyNotes(),
+            })),
+          };
+        }
+        if (fromVersion <= 2) {
+          // Backfill captainNotes on existing games
+          stored = {
+            ...stored,
+            games: (stored.games ?? []).map((g: any) => ({
+              ...g,
+              captainNotes: g.captainNotes ?? emptyNotes(),
             })),
           };
         }
