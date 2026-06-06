@@ -11,7 +11,7 @@ function AppShell() {
 
   return (
     <div className="h-full flex flex-col max-w-md mx-auto relative">
-      <div className={`flex-1 overflow-hidden ${isShareView ? '' : 'pb-16'}`}>
+      <div className={`flex-1 ${isShareView ? 'overflow-y-auto' : 'overflow-hidden pb-16'}`}>
         <Routes>
           <Route path="/" element={<PlannerPage />} />
           <Route path="/roster" element={<RosterPage />} />
