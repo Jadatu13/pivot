@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, X, Check, AlertTriangle } from 'lucide-react';
 import { useAppStore, selectSortedPlayers } from '../store/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 import type { Player, Position } from '../types';
 import { POSITIONS, POSITION_LABELS } from '../types';
 
@@ -126,7 +127,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
 }
 
 export default function RosterPage() {
-  const players = useAppStore(selectSortedPlayers);
+  const players = useAppStore(useShallow(selectSortedPlayers));
   const addPlayer = useAppStore((s) => s.addPlayer);
   const updatePlayer = useAppStore((s) => s.updatePlayer);
   const deletePlayer = useAppStore((s) => s.deletePlayer);
