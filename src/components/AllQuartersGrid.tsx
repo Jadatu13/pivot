@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Copy } from 'lucide-react';
 import type { Game, Player, Quarter, SlotKey } from '../types';
 import { ALL_SLOTS, QUARTERS, POSITION_ZONE, POSITIONS } from '../types';
 import { getMidGameInjuredIds } from '../utils/suggestions';
@@ -14,6 +15,7 @@ interface Props {
   onRemoveInjury: (playerId: string) => void;
   onSetNote: (quarter: Quarter, slot: SlotKey, note: string) => void;
   onSetCaptainNote: (quarter: Quarter, slot: SlotKey, note: string) => void;
+  onCopyQuarter: (from: Quarter, to: Quarter) => void;
 }
 
 type CellTarget = { quarter: Quarter; slot: SlotKey };
@@ -25,10 +27,11 @@ const ZONE_STYLES: Record<string, { badge: string }> = {
   sub:     { badge: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
 
-export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury, onSetNote, onSetCaptainNote }: Props) {
+export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury, onSetNote, onSetCaptainNote, onCopyQuarter }: Props) {
   const [pickerTarget, setPickerTarget] = useState<CellTarget | null>(null);
   const [actionTarget, setActionTarget] = useState<CellTarget | null>(null);
   const [injuryTarget, setInjuryTarget] = useState<{ playerId: string; name: string; quarter: Quarter } | null>(null);
+  const [copyMenuFor, setCopyMenuFor] = useState<Quarter | null>(null);
 
   const playerById = Object.fromEntries(players.map((p) => [p.id, p]));
   // Per-quarter injury sets so a Q3 injury doesn't affect Q1/Q2 display
@@ -60,10 +63,38 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
           {QUARTERS.map((q) => {
             const filled = Object.keys(game.quarters[q]).length;
             return (
-              <div key={q} className="text-center">
+              <div key={q} className="text-center relative">
                 <span className="text-xs font-bold text-slate-500">Q{q}</span>
                 {filled > 0 && (
                   <span className="ml-1 text-xs text-violet-500 font-semibold">{filled}</span>
+                )}
+                {q > 1 && (
+                  <button
+                    onClick={() => setCopyMenuFor((cur) => (cur === q ? null : q))}
+                    className="ml-1 inline-flex align-middle text-slate-300 active:text-violet-500"
+                    aria-label={`Copy lineup into Q${q}`}
+                  >
+                    <Copy size={11} />
+                  </button>
+                )}
+                {copyMenuFor === q && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setCopyMenuFor(null)} />
+                    <div className={`absolute z-20 top-full mt-1 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden whitespace-nowrap ${
+                      q === 4 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                    }`}>
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wide">Copy into Q{q} from</p>
+                      {QUARTERS.filter((from) => from !== q).map((from) => (
+                        <button
+                          key={from}
+                          onClick={() => { onCopyQuarter(from, q); setCopyMenuFor(null); }}
+                          className="block w-full text-left px-3 py-2 text-xs text-slate-700 active:bg-slate-50"
+                        >
+                          Quarter {from}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             );

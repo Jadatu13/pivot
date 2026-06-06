@@ -30,8 +30,10 @@ export default function SlotActionSheet({
 }: Props) {
   const [localNote, setLocalNote] = useState(note ?? '');
   const [showNote, setShowNote] = useState(!!note);
+  const [focusNote, setFocusNote] = useState(false);
   const [localCaptainNote, setLocalCaptainNote] = useState(captainNote ?? '');
   const [showCaptainNote, setShowCaptainNote] = useState(!!captainNote);
+  const [focusCaptainNote, setFocusCaptainNote] = useState(false);
 
   function handleClose() {
     onNoteChange(localNote.trim());
@@ -71,7 +73,7 @@ export default function SlotActionSheet({
           </button>
 
           <button
-            onClick={() => setShowNote((v) => !v)}
+            onClick={() => setShowNote((v) => { const next = !v; if (next) setFocusNote(true); return next; })}
             className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left text-violet-700 font-medium active:bg-violet-50"
           >
             <MessageSquare size={18} className="text-violet-500" />
@@ -89,7 +91,7 @@ export default function SlotActionSheet({
                 onChange={(e) => setLocalNote(e.target.value)}
                 onBlur={() => onNoteChange(localNote.trim())}
                 placeholder="e.g. subbed for fatigue, captain's choice…"
-                autoFocus
+                autoFocus={focusNote}
                 className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-400"
               />
               <p className="text-xs text-slate-400 mt-1">Visible to everyone you share with.</p>
@@ -105,7 +107,7 @@ export default function SlotActionSheet({
           )}
 
           <button
-            onClick={() => setShowCaptainNote((v) => !v)}
+            onClick={() => setShowCaptainNote((v) => { const next = !v; if (next) setFocusCaptainNote(true); return next; })}
             className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left text-amber-700 font-medium active:bg-amber-50"
           >
             <Lock size={18} className="text-amber-500" />
@@ -123,7 +125,7 @@ export default function SlotActionSheet({
                 onChange={(e) => setLocalCaptainNote(e.target.value)}
                 onBlur={() => onCaptainNoteChange(localCaptainNote.trim())}
                 placeholder="e.g. personal reason — keep private"
-                autoFocus
+                autoFocus={focusCaptainNote}
                 className="w-full border border-amber-200 rounded-xl px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400"
               />
               <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">

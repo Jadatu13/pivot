@@ -84,11 +84,18 @@ export const useAppStore = create<AppStore>()(
             if (playerId === undefined) {
               delete q[slot];
             } else {
-              // Remove this player from any other slot in this quarter first
+              const displaced = q[slot]; // player currently in the target slot, if any
+              // Find where the incoming player currently sits this quarter
+              let fromSlot: SlotKey | undefined;
               for (const k of Object.keys(q) as SlotKey[]) {
-                if (q[k] === playerId) delete q[k];
+                if (q[k] === playerId) { fromSlot = k; delete q[k]; }
               }
               q[slot] = playerId;
+              // True swap: if the incoming player came from another slot and the
+              // target had an occupant, move that occupant into the vacated slot.
+              if (fromSlot && fromSlot !== slot && displaced && displaced !== playerId) {
+                q[fromSlot] = displaced;
+              }
             }
             return { ...g, quarters: { ...g.quarters, [quarter]: q } };
           }),

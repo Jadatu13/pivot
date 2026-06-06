@@ -1,4 +1,4 @@
-import { X, Star, AlertTriangle } from 'lucide-react';
+import { X, Star, AlertTriangle, ArrowLeftRight } from 'lucide-react';
 import type { Game, Player, Quarter, SlotKey } from '../types';
 import { POSITION_LABELS, POSITIONS } from '../types';
 import { scorePlayers } from '../utils/suggestions';
@@ -83,7 +83,7 @@ export default function PlayerPickerModal({
 
         {/* Player list */}
         <div className="overflow-y-auto flex-1 px-4 py-2 space-y-1.5">
-          {available.map(({ player, tags, courtTime, lastPlayed }) => {
+          {available.map(({ player, tags, courtTime, lastPlayed, playingSlot }) => {
             const isCurrentPlayer = player.id === currentPlayerId;
             const isPreferred = slot !== 'Sub' && player.preferredPositions.includes(slot as typeof POSITIONS[number]);
             return (
@@ -93,6 +93,8 @@ export default function PlayerPickerModal({
                 className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${
                   isCurrentPlayer
                     ? 'bg-violet-50 border-2 border-violet-400'
+                    : playingSlot
+                    ? 'bg-amber-50 border border-amber-200 active:bg-amber-100'
                     : 'bg-slate-50 border border-slate-100 active:bg-slate-100'
                 }`}
               >
@@ -109,7 +111,12 @@ export default function PlayerPickerModal({
                     <span className="font-semibold text-slate-900 truncate">{player.name}</span>
                     {isPreferred && <Star size={13} className="text-violet-500 flex-shrink-0" fill="currentColor" />}
                     {player.activeInjury && <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />}
-                    {lastPlayed && (
+                    {playingSlot ? (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold flex-shrink-0 flex items-center gap-0.5">
+                        <ArrowLeftRight size={10} />
+                        Swap {playingSlot}
+                      </span>
+                    ) : lastPlayed && (
                       <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
                         Q{lastPlayed.quarter} {lastPlayed.position}
                       </span>

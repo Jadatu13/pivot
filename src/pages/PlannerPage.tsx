@@ -292,6 +292,7 @@ export default function PlannerPage() {
                 onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
                 onSetNote={(q, slot, note) => setSlotNote(activeGame.id, q, slot, note)}
                 onSetCaptainNote={(q, slot, note) => setCaptainNote(activeGame.id, q, slot, note)}
+                onCopyQuarter={(from, to) => copyQuarter(activeGame.id, from, to)}
               />
             </>
           )}

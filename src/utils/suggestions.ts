@@ -7,6 +7,8 @@ export interface PlayerScore {
   tags: string[];
   excluded: boolean;
   excludeReason?: string;
+  /** Slot this player currently occupies in this quarter — selecting them swaps. */
+  playingSlot?: SlotKey;
   courtTime: number;
   lastPlayed?: { position: SlotKey; quarter: Quarter };
 }
@@ -48,16 +50,13 @@ export function scorePlayers(
       let excluded = false;
       let excludeReason: string | undefined;
 
-      // Already assigned elsewhere this quarter
+      // Already assigned elsewhere this quarter — selectable for a one-tap swap
       const otherSlot = Object.entries(currentLineup).find(
         ([s, pid]) => pid === player.id && s !== slot
       );
-      if (otherSlot) {
-        excluded = true;
-        excludeReason = `Playing ${otherSlot[0]}`;
-      }
+      const playingSlot = otherSlot ? (otherSlot[0] as SlotKey) : undefined;
 
-      // Mid-game injury
+      // Mid-game injury — genuinely unavailable
       if (injuredIds.has(player.id)) {
         const inj = game.midGameInjuries.find((i) => i.playerId === player.id);
         excluded = true;
@@ -111,7 +110,7 @@ export function scorePlayers(
         }
       }
 
-      return { player, score, tags, excluded, excludeReason, courtTime: courtTime[player.id] ?? 0, lastPlayed };
+      return { player, score, tags, excluded, excludeReason, playingSlot, courtTime: courtTime[player.id] ?? 0, lastPlayed };
     })
     .sort((a, b) => {
       if (a.excluded !== b.excluded) return a.excluded ? 1 : -1;

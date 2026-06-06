@@ -54,7 +54,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Player name"
-            autoFocus
+            autoFocus={!initial.id}
             className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
