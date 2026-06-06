@@ -120,7 +120,16 @@ export const useAppStore = create<AppStore>()(
           ),
         })),
     }),
-    { name: 'pivot-v1' }
+    {
+      name: 'pivot-v1',
+      version: 1,
+      migrate: (stored: any, fromVersion: number) => {
+        if (fromVersion === 0 && (!stored.players || stored.players.length === 0)) {
+          return { ...stored, players: DEFAULT_PLAYERS };
+        }
+        return stored;
+      },
+    }
   )
 );
 
