@@ -33,7 +33,10 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
-      <div className="relative w-full bg-white rounded-t-2xl p-5 pb-8 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div
+        className="relative w-full bg-white rounded-t-2xl p-5 pb-8 space-y-4 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">
             {initial.name ? 'Edit Player' : 'Add Player'}
@@ -67,6 +70,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
               return (
                 <button
                   key={pos}
+                  type="button"
                   onClick={() => togglePosition(pos)}
                   className={`py-2.5 rounded-xl text-xs font-bold border transition-colors ${
                     selected

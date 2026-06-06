@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, ChevronDown, Copy, Share2 } from 'lucide-react';
+import { Plus, ChevronDown, Copy, Share2, Pencil } from 'lucide-react';
 import { useAppStore, selectSortedPlayers } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { Quarter, SlotKey } from '../types';
@@ -8,8 +8,9 @@ import QuarterBoard from '../components/QuarterBoard';
 import AllQuartersGrid from '../components/AllQuartersGrid';
 import SmartSuggestions from '../components/SmartSuggestions';
 import NewGameModal from '../components/NewGameModal';
+import EditGameModal from '../components/EditGameModal';
 import { getGameTips } from '../utils/suggestions';
-import { buildShareUrl, buildShareText, syncGameToServer } from '../utils/sharing';
+import { buildShareUrl, syncGameToServer } from '../utils/sharing';
 
 type ViewMode = 'all' | 'quarter';
 
@@ -24,10 +25,13 @@ export default function PlannerPage() {
   const setSlotNote = useAppStore((s) => s.setSlotNote);
   const addMidGameInjury = useAppStore((s) => s.addMidGameInjury);
   const removeMidGameInjury = useAppStore((s) => s.removeMidGameInjury);
+  const updateGame = useAppStore((s) => s.updateGame);
+  const deleteGame = useAppStore((s) => s.deleteGame);
 
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [quarter, setQuarter] = useState<Quarter>(1);
   const [showNewGame, setShowNewGame] = useState(false);
+  const [showEditGame, setShowEditGame] = useState(false);
   const [showGamePicker, setShowGamePicker] = useState(false);
   const [showCopyMenu, setShowCopyMenu] = useState(false);
   const [shareToast, setShareToast] = useState('');
@@ -50,53 +54,35 @@ export default function PlannerPage() {
     setShowCopyMenu(false);
   }
 
-  async function handleShare(mode: 'link' | 'text') {
+  async function handleShare() {
     if (!activeGame) return;
-    if (mode === 'link') {
-      // Sync to KV first so the link is immediately live for recipients
-      setShareToast('Syncing…');
-      await syncGameToServer({ game: activeGame, players });
-      const url = buildShareUrl(activeGame.id);
-      // Use native share sheet on iOS/Android, fall back to clipboard on desktop
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: `Pivot Playbook${activeGame.opponent ? ` — vs ${activeGame.opponent}` : ''}`,
-            url,
-          });
-          setShareToast('');
-          return;
-        } catch {
-          // user cancelled or share failed — fall through to clipboard
-        }
-      }
+    setShareToast('Syncing…');
+    await syncGameToServer({ game: activeGame, players });
+    const url = buildShareUrl(activeGame.id);
+    if (navigator.share) {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.share({
+          title: `Pivot Playbook${activeGame.opponent ? ` — vs ${activeGame.opponent}` : ''}`,
+          url,
+        });
+        setShareToast('');
+        return;
       } catch {
-        const el = document.createElement('textarea');
-        el.value = url;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
+        // user cancelled or share failed — fall through to clipboard
       }
-      setShareToast('Link copied!');
-      setTimeout(() => setShareToast(''), 2500);
-    } else {
-      const text = buildShareText({ game: activeGame, players });
-      try {
-        await navigator.clipboard.writeText(text);
-      } catch {
-        const el = document.createElement('textarea');
-        el.value = text;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-      }
-      setShareToast('Copied for WhatsApp!');
-      setTimeout(() => setShareToast(''), 2500);
     }
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setShareToast('Link copied!');
+    setTimeout(() => setShareToast(''), 2500);
   }
 
   // Sync active game to server whenever it changes (powers live share links)
@@ -128,21 +114,30 @@ export default function PlannerPage() {
 
         {/* Game selector */}
         {activeGame ? (
-          <button
-            onClick={() => setShowGamePicker((o) => !o)}
-            className="mt-3 flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2 w-full text-left"
-          >
-            <div className="flex-1">
-              <p className="text-white font-semibold text-sm">
-                {activeGame.opponent ? `vs ${activeGame.opponent}` : 'Game'}
-              </p>
-              <p className="text-violet-100 text-xs">{formatDate(activeGame.date)}</p>
-            </div>
-            <ChevronDown
-              size={16}
-              className={`text-white/70 transition-transform ${showGamePicker ? 'rotate-180' : ''}`}
-            />
-          </button>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => setShowGamePicker((o) => !o)}
+              className="flex-1 flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2 text-left"
+            >
+              <div className="flex-1">
+                <p className="text-white font-semibold text-sm">
+                  {activeGame.opponent ? `vs ${activeGame.opponent}` : 'Game'}
+                </p>
+                <p className="text-violet-100 text-xs">{formatDate(activeGame.date)}</p>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`text-white/70 transition-transform ${showGamePicker ? 'rotate-180' : ''}`}
+              />
+            </button>
+            <button
+              onClick={() => { setShowGamePicker(false); setShowEditGame(true); }}
+              className="bg-white/20 p-2 rounded-xl flex-shrink-0"
+              aria-label="Edit game"
+            >
+              <Pencil size={15} className="text-white" />
+            </button>
+          </div>
         ) : (
           <div className="mt-3 text-violet-100 text-sm">Tap + New game to get started</div>
         )}
@@ -247,19 +242,13 @@ export default function PlannerPage() {
                     )}
                   </div>
                 )}
-                <div className="ml-auto flex gap-2">
+                <div className="ml-auto">
                   <button
-                    onClick={() => handleShare('link')}
+                    onClick={handleShare}
                     className="flex items-center gap-1.5 text-xs font-medium text-violet-700 border border-violet-200 bg-violet-50 px-3 py-2 rounded-xl"
                   >
                     <Share2 size={13} />
                     Share
-                  </button>
-                  <button
-                    onClick={() => handleShare('text')}
-                    className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white px-3 py-2 rounded-xl"
-                  >
-                    WhatsApp
                   </button>
                 </div>
               </div>
@@ -281,19 +270,13 @@ export default function PlannerPage() {
           ) : (
             <>
               {/* Share controls for all-quarters view */}
-              <div className="flex gap-2 px-4 pt-3 pb-1 justify-end">
+              <div className="flex px-4 pt-3 pb-1 justify-end">
                 <button
-                  onClick={() => handleShare('link')}
+                  onClick={handleShare}
                   className="flex items-center gap-1.5 text-xs font-medium text-violet-700 border border-violet-200 bg-violet-50 px-3 py-2 rounded-xl"
                 >
                   <Share2 size={13} />
                   Share
-                </button>
-                <button
-                  onClick={() => handleShare('text')}
-                  className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white px-3 py-2 rounded-xl"
-                >
-                  WhatsApp
                 </button>
               </div>
 
@@ -337,6 +320,15 @@ export default function PlannerPage() {
 
       {showNewGame && (
         <NewGameModal onClose={() => setShowNewGame(false)} onCreate={createGame} />
+      )}
+
+      {showEditGame && activeGame && (
+        <EditGameModal
+          game={activeGame}
+          onClose={() => setShowEditGame(false)}
+          onSave={(date, opponent) => updateGame(activeGame.id, { date, opponent })}
+          onDelete={() => deleteGame(activeGame.id)}
+        />
       )}
     </div>
   );
