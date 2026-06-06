@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, ChevronDown, Copy, Share2 } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import type { Quarter, SlotKey } from '../types';
@@ -8,7 +8,7 @@ import AllQuartersGrid from '../components/AllQuartersGrid';
 import SmartSuggestions from '../components/SmartSuggestions';
 import NewGameModal from '../components/NewGameModal';
 import { getGameTips } from '../utils/suggestions';
-import { buildShareUrl, buildShareText } from '../utils/sharing';
+import { buildShareUrl, buildShareText, syncGameToServer } from '../utils/sharing';
 
 type ViewMode = 'all' | 'quarter';
 
@@ -20,6 +20,7 @@ export default function PlannerPage() {
   const setActiveGame = useAppStore((s) => s.setActiveGame);
   const assignPlayer = useAppStore((s) => s.assignPlayer);
   const copyQuarter = useAppStore((s) => s.copyQuarter);
+  const setSlotNote = useAppStore((s) => s.setSlotNote);
   const addMidGameInjury = useAppStore((s) => s.addMidGameInjury);
   const removeMidGameInjury = useAppStore((s) => s.removeMidGameInjury);
 
@@ -50,21 +51,53 @@ export default function PlannerPage() {
 
   async function handleShare(mode: 'link' | 'text') {
     if (!activeGame) return;
-    const data = { game: activeGame, players };
-    const content = mode === 'link' ? buildShareUrl(data) : buildShareText(data);
-    try {
-      await navigator.clipboard.writeText(content);
-    } catch {
-      const el = document.createElement('textarea');
-      el.value = content;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
+    if (mode === 'link') {
+      const url = buildShareUrl(activeGame.id);
+      // Use native share sheet on iOS/Android, fall back to clipboard on desktop
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Pivot Playbook${activeGame.opponent ? ` — vs ${activeGame.opponent}` : ''}`,
+            url,
+          });
+          return;
+        } catch {
+          // user cancelled or share failed — fall through to clipboard
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        const el = document.createElement('textarea');
+        el.value = url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      }
+      setShareToast('Link copied!');
+      setTimeout(() => setShareToast(''), 2500);
+    } else {
+      const text = buildShareText({ game: activeGame, players });
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+      }
+      setShareToast('Copied for WhatsApp!');
+      setTimeout(() => setShareToast(''), 2500);
     }
-    setShareToast(mode === 'link' ? 'Link copied!' : 'Copied for WhatsApp!');
-    setTimeout(() => setShareToast(''), 2500);
   }
+
+  // Sync active game to server whenever it changes (powers live share links)
+  useEffect(() => {
+    if (activeGame) syncGameToServer({ game: activeGame, players });
+  }, [activeGame, players]);
 
   const tips = activeGame ? getGameTips(players, activeGame, quarter) : [];
 
@@ -235,6 +268,7 @@ export default function PlannerPage() {
                   addMidGameInjury(activeGame.id, { playerId, quarter: q, description })
                 }
                 onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
+                onSetNote={(slot, note) => setSlotNote(activeGame.id, quarter, slot, note)}
               />
 
               <SmartSuggestions tips={tips} />
@@ -266,6 +300,7 @@ export default function PlannerPage() {
                   addMidGameInjury(activeGame.id, { playerId, quarter: q, description })
                 }
                 onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
+                onSetNote={(q, slot, note) => setSlotNote(activeGame.id, q, slot, note)}
               />
             </>
           )}

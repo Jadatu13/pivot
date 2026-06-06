@@ -147,13 +147,19 @@ export default function HistoryPage() {
   const [shareToast, setShareToast] = useState('');
 
   async function handleShare(game: Game) {
-    const data = { game, players };
+    const url = buildShareUrl(game.id);
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Pivot Playbook${game.opponent ? ` — vs ${game.opponent}` : ''}`, url });
+        return;
+      } catch { /* fall through */ }
+    }
     try {
-      await navigator.clipboard.writeText(buildShareUrl(data));
+      await navigator.clipboard.writeText(url);
       setShareToast('Link copied!');
       setTimeout(() => setShareToast(''), 2500);
     } catch {
-      setShareToast(buildShareText(data));
+      setShareToast(buildShareText({ game, players }));
     }
   }
 

@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Player, Game, Quarter, SlotKey, GameInjury, QuarterLineup } from '../types';
+import type { Player, Game, Quarter, SlotKey, GameInjury, QuarterLineup, QuarterNotes } from '../types';
 
 const DEFAULT_PLAYERS: Player[] = [
-  'Leah', 'Indy', 'Arwen', 'Lauren', 'Lani', 'Harmonie', 'Katana', 'Steph',
+  'Leah', 'Indy', 'Arwen', 'Lauren', 'Lani', 'Harmony', 'Katana', 'Steph',
 ].map((name) => ({ id: crypto.randomUUID(), name, preferredPositions: [] }));
 
 interface AppStore {
@@ -22,14 +22,14 @@ interface AppStore {
 
   assignPlayer: (gameId: string, quarter: Quarter, slot: SlotKey, playerId: string | undefined) => void;
   copyQuarter: (gameId: string, from: Quarter, to: Quarter) => void;
+  setSlotNote: (gameId: string, quarter: Quarter, slot: SlotKey, note: string) => void;
 
   addMidGameInjury: (gameId: string, injury: GameInjury) => void;
   removeMidGameInjury: (gameId: string, playerId: string) => void;
 }
 
-const emptyQuarters = (): Record<Quarter, QuarterLineup> => ({
-  1: {}, 2: {}, 3: {}, 4: {},
-});
+const emptyQuarters = (): Record<Quarter, QuarterLineup> => ({ 1: {}, 2: {}, 3: {}, 4: {} });
+const emptyNotes = (): Record<Quarter, QuarterNotes> => ({ 1: {}, 2: {}, 3: {}, 4: {} });
 
 export const useAppStore = create<AppStore>()(
   persist(
@@ -53,7 +53,7 @@ export const useAppStore = create<AppStore>()(
         const id = crypto.randomUUID();
         set((s) => ({
           games: [
-            { id, date, opponent, quarters: emptyQuarters(), midGameInjuries: [] },
+            { id, date, opponent, quarters: emptyQuarters(), quarterNotes: emptyNotes(), midGameInjuries: [] },
             ...s.games,
           ],
           activeGameId: id,
@@ -102,6 +102,21 @@ export const useAppStore = create<AppStore>()(
           ),
         })),
 
+      setSlotNote: (gameId, quarter, slot, note) =>
+        set((s) => ({
+          games: s.games.map((g) => {
+            if (g.id !== gameId) return g;
+            const notes = g.quarterNotes ?? emptyNotes();
+            return {
+              ...g,
+              quarterNotes: {
+                ...notes,
+                [quarter]: { ...notes[quarter], [slot]: note || undefined },
+              },
+            };
+          }),
+        })),
+
       addMidGameInjury: (gameId, injury) =>
         set((s) => ({
           games: s.games.map((g) => {
@@ -122,10 +137,24 @@ export const useAppStore = create<AppStore>()(
     }),
     {
       name: 'pivot-v1',
-      version: 1,
+      version: 2,
       migrate: (stored: any, fromVersion: number) => {
         if (fromVersion === 0 && (!stored.players || stored.players.length === 0)) {
-          return { ...stored, players: DEFAULT_PLAYERS };
+          stored = { ...stored, players: DEFAULT_PLAYERS };
+        }
+        if (fromVersion <= 1) {
+          // Fix typo Harmonie → Harmony
+          stored = {
+            ...stored,
+            players: (stored.players ?? []).map((p: any) =>
+              p.name === 'Harmonie' ? { ...p, name: 'Harmony' } : p
+            ),
+            // Backfill quarterNotes on existing games
+            games: (stored.games ?? []).map((g: any) => ({
+              ...g,
+              quarterNotes: g.quarterNotes ?? emptyNotes(),
+            })),
+          };
         }
         return stored;
       },

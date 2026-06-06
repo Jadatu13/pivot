@@ -14,6 +14,7 @@ interface Props {
   onAssign: (slot: SlotKey, playerId: string | undefined) => void;
   onAddInjury: (quarter: Quarter, playerId: string, description: string) => void;
   onRemoveInjury: (playerId: string) => void;
+  onSetNote: (slot: SlotKey, note: string) => void;
 }
 
 const ZONE_COLOURS: Record<string, { bg: string; text: string; border: string }> = {
@@ -23,7 +24,7 @@ const ZONE_COLOURS: Record<string, { bg: string; text: string; border: string }>
   sub: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
 };
 
-export default function QuarterBoard({ game, quarter, players, onAssign, onAddInjury, onRemoveInjury }: Props) {
+export default function QuarterBoard({ game, quarter, players, onAssign, onAddInjury, onRemoveInjury, onSetNote }: Props) {
   const [pickerSlot, setPickerSlot] = useState<SlotKey | null>(null);
   const [actionSlot, setActionSlot] = useState<SlotKey | null>(null);
   const [injuryForPlayer, setInjuryForPlayer] = useState<{ playerId: string; name: string } | null>(null);
@@ -58,6 +59,7 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
           const isInjured = player ? injuredIds.has(player.id) : false;
           const injury = player ? game.midGameInjuries.find((i) => i.playerId === player.id) : null;
           const hasPreGameInjury = player?.activeInjury;
+          const note = game.quarterNotes?.[quarter]?.[slot];
 
           return (
             <button
@@ -73,20 +75,25 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
               {/* Player info */}
               <div className="flex-1 min-w-0">
                 {player ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className={`font-semibold truncate ${isInjured ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
-                      {player.name}
-                    </span>
-                    {isPreferred && !isInjured && (
-                      <Star size={12} className="text-violet-500 flex-shrink-0" fill="currentColor" />
-                    )}
-                    {isInjured && injury && (
-                      <span className="ml-1 text-xs font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                        🩹 Q{injury.quarter}
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`font-semibold truncate ${isInjured ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
+                        {player.name}
                       </span>
-                    )}
-                    {!isInjured && hasPreGameInjury && (
-                      <AlertTriangle size={12} className="text-amber-500 flex-shrink-0" />
+                      {isPreferred && !isInjured && (
+                        <Star size={12} className="text-violet-500 flex-shrink-0" fill="currentColor" />
+                      )}
+                      {isInjured && injury && (
+                        <span className="ml-1 text-xs font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                          🩹 Q{injury.quarter}
+                        </span>
+                      )}
+                      {!isInjured && hasPreGameInjury && (
+                        <AlertTriangle size={12} className="text-amber-500 flex-shrink-0" />
+                      )}
+                    </div>
+                    {note && (
+                      <p className="text-xs text-slate-400 mt-0.5 truncate">{note}</p>
                     )}
                   </div>
                 ) : (
@@ -128,10 +135,12 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
           playerName={actionPlayer.name}
           slot={actionSlot}
           hasInjury={injuredIds.has(actionPlayer.id)}
+          note={game.quarterNotes?.[quarter]?.[actionSlot]}
           onChangePlayer={() => setPickerSlot(actionSlot)}
           onMarkInjury={() => setInjuryForPlayer({ playerId: actionPlayer.id, name: actionPlayer.name })}
           onClear={() => onAssign(actionSlot, undefined)}
           onClose={() => setActionSlot(null)}
+          onNoteChange={(note) => onSetNote(actionSlot, note)}
         />
       )}
 

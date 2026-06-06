@@ -41,11 +41,13 @@ export interface Player {
 }
 
 export type QuarterLineup = Partial<Record<SlotKey, string>>;
+export type QuarterNotes = Partial<Record<SlotKey, string>>;
 
 export interface Game {
   id: string;
   date: string;
   opponent?: string;
   quarters: Record<Quarter, QuarterLineup>;
+  quarterNotes?: Record<Quarter, QuarterNotes>;
   midGameInjuries: GameInjury[];
 }

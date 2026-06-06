@@ -20,8 +20,22 @@ export function decodeShare(encoded: string): ShareData | null {
   }
 }
 
-export function buildShareUrl(data: ShareData): string {
-  return `${window.location.origin}/share/${encodeShare(data)}`;
+/** Short live share URL — just the game UUID. Share view fetches from /api/game/:id */
+export function buildShareUrl(gameId: string): string {
+  return `${window.location.origin}/share/${gameId}`;
+}
+
+/** Sync game+players to Vercel KV so shared links stay live */
+export async function syncGameToServer(data: ShareData): Promise<void> {
+  try {
+    await fetch(`/api/game/${data.game.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  } catch {
+    // silently fail — app works fully offline without sync
+  }
 }
 
 export function buildShareText(data: ShareData): string {
@@ -51,7 +65,8 @@ export function buildShareText(data: ShareData): string {
     for (const [slot, pid] of entries) {
       const p = pid ? byId[pid] : null;
       if (p) {
-        lines.push(`${slot.padEnd(3)}  ${p.name}`);
+        const note = game.quarterNotes?.[q]?.[slot];
+        lines.push(`${slot.padEnd(3)}  ${p.name}${note ? ` (${note})` : ''}`);
       }
     }
     lines.push('');

@@ -12,6 +12,7 @@ interface Props {
   onAssign: (quarter: Quarter, slot: SlotKey, playerId: string | undefined) => void;
   onAddInjury: (quarter: Quarter, playerId: string, description: string) => void;
   onRemoveInjury: (playerId: string) => void;
+  onSetNote: (quarter: Quarter, slot: SlotKey, note: string) => void;
 }
 
 type CellTarget = { quarter: Quarter; slot: SlotKey };
@@ -23,13 +24,18 @@ const ZONE_STYLES: Record<string, { badge: string }> = {
   sub:     { badge: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
 
-export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury }: Props) {
+export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, onRemoveInjury, onSetNote }: Props) {
   const [pickerTarget, setPickerTarget] = useState<CellTarget | null>(null);
   const [actionTarget, setActionTarget] = useState<CellTarget | null>(null);
   const [injuryTarget, setInjuryTarget] = useState<{ playerId: string; name: string; quarter: Quarter } | null>(null);
 
   const playerById = Object.fromEntries(players.map((p) => [p.id, p]));
-  const injuredIds = new Set(game.midGameInjuries.map((i) => i.playerId));
+  // Per-quarter injury sets so a Q3 injury doesn't affect Q1/Q2 display
+  const injuredByQ = Object.fromEntries(
+    QUARTERS.map((q) => [q, getMidGameInjuredIds(game, q)])
+  ) as Record<number, Set<string>>;
+  // Still need all-time set for court time section
+  const everInjuredIds = new Set(game.midGameInjuries.map((i) => i.playerId));
 
   function handleCellTap(quarter: Quarter, slot: SlotKey) {
     const pid = game.quarters[quarter][slot];
@@ -79,14 +85,15 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
               {QUARTERS.map((q) => {
                 const pid = game.quarters[q][slot];
                 const player = pid ? playerById[pid] : null;
-                const isInjured = player ? injuredIds.has(player.id) : false;
+                const isInjured = player ? injuredByQ[q].has(player.id) : false;
                 const injury = player ? game.midGameInjuries.find((i) => i.playerId === player.id) : null;
+                const note = game.quarterNotes?.[q]?.[slot];
 
                 return (
                   <button
                     key={q}
                     onClick={() => handleCellTap(q, slot)}
-                    className={`rounded-lg border text-center py-2 px-1 transition-colors text-xs leading-tight ${
+                    className={`rounded-lg border text-center py-2 px-1 transition-colors text-xs leading-tight relative ${
                       isInjured
                         ? 'bg-amber-50 border-amber-200 text-amber-600'
                         : player
@@ -100,6 +107,9 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
                       </span>
                     ) : (
                       <span className="text-slate-200 font-light text-base leading-none">+</span>
+                    )}
+                    {note && (
+                      <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-violet-400" />
                     )}
                   </button>
                 );
@@ -121,12 +131,12 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
                   return acc + (inCourt ? 1 : 0);
                 }, 0);
                 const onSub = QUARTERS.filter((q) => game.quarters[q]['Sub'] === player.id).length;
-                const isInjured = injuredIds.has(player.id);
+                const isEverInjured = everInjuredIds.has(player.id);
 
                 return (
                   <div key={player.id} className="flex items-center gap-2">
-                    <span className={`text-xs font-medium w-20 truncate ${isInjured ? 'text-amber-500' : 'text-slate-700'}`}>
-                      {isInjured ? '🩹 ' : ''}{player.name}
+                    <span className={`text-xs font-medium w-20 truncate ${isEverInjured ? 'text-amber-500' : 'text-slate-700'}`}>
+                      {isEverInjured ? '🩹 ' : ''}{player.name}
                     </span>
                     <div className="flex gap-0.5 flex-1">
                       {QUARTERS.map((q) => {
@@ -178,13 +188,15 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
         <SlotActionSheet
           playerName={actionPlayer.name}
           slot={actionTarget.slot}
-          hasInjury={injuredIds.has(actionPlayer.id)}
+          hasInjury={injuredByQ[actionTarget.quarter].has(actionPlayer.id)}
+          note={game.quarterNotes?.[actionTarget.quarter]?.[actionTarget.slot]}
           onChangePlayer={() => setPickerTarget(actionTarget)}
           onMarkInjury={() =>
             setInjuryTarget({ playerId: actionPlayer.id, name: actionPlayer.name, quarter: actionTarget.quarter })
           }
           onClear={() => onAssign(actionTarget.quarter, actionTarget.slot, undefined)}
           onClose={() => setActionTarget(null)}
+          onNoteChange={(note) => onSetNote(actionTarget.quarter, actionTarget.slot, note)}
         />
       )}
 
