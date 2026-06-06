@@ -1,0 +1,255 @@
+import { useState } from 'react';
+import { Plus, ChevronDown, Copy, Share2 } from 'lucide-react';
+import { useAppStore } from '../store/useAppStore';
+import type { Quarter, SlotKey } from '../types';
+import { QUARTERS } from '../types';
+import QuarterBoard from '../components/QuarterBoard';
+import SmartSuggestions from '../components/SmartSuggestions';
+import NewGameModal from '../components/NewGameModal';
+import { getGameTips } from '../utils/suggestions';
+import { buildShareUrl, buildShareText } from '../utils/sharing';
+
+export default function PlannerPage() {
+  const players = useAppStore((s) => s.players);
+  const games = useAppStore((s) => s.games);
+  const activeGameId = useAppStore((s) => s.activeGameId);
+  const createGame = useAppStore((s) => s.createGame);
+  const setActiveGame = useAppStore((s) => s.setActiveGame);
+  const assignPlayer = useAppStore((s) => s.assignPlayer);
+  const copyQuarter = useAppStore((s) => s.copyQuarter);
+  const addMidGameInjury = useAppStore((s) => s.addMidGameInjury);
+  const removeMidGameInjury = useAppStore((s) => s.removeMidGameInjury);
+
+  const [quarter, setQuarter] = useState<Quarter>(1);
+  const [showNewGame, setShowNewGame] = useState(false);
+  const [showGamePicker, setShowGamePicker] = useState(false);
+  const [showCopyMenu, setShowCopyMenu] = useState(false);
+  const [shareToast, setShareToast] = useState('');
+
+  const activeGame = games.find((g) => g.id === activeGameId) ?? games[0] ?? null;
+
+  function handleAssign(slot: SlotKey, playerId: string | undefined) {
+    if (!activeGame) return;
+    assignPlayer(activeGame.id, quarter, slot, playerId);
+  }
+
+  function handleCopyFrom(from: Quarter) {
+    if (!activeGame) return;
+    copyQuarter(activeGame.id, from, quarter);
+    setShowCopyMenu(false);
+  }
+
+  async function handleShare(mode: 'link' | 'text') {
+    if (!activeGame) return;
+    const data = { game: activeGame, players };
+    const content = mode === 'link' ? buildShareUrl(data) : buildShareText(data);
+    try {
+      await navigator.clipboard.writeText(content);
+      setShareToast(mode === 'link' ? 'Link copied!' : 'Copied for WhatsApp!');
+    } catch {
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = content;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setShareToast(mode === 'link' ? 'Link copied!' : 'Copied!');
+    }
+    setTimeout(() => setShareToast(''), 2500);
+  }
+
+  const tips = activeGame ? getGameTips(players, activeGame, quarter) : [];
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr + 'T12:00:00').toLocaleDateString('en-NZ', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    });
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="bg-emerald-600 pt-safe px-4 pb-4 flex-shrink-0">
+        <div className="flex items-center justify-between pt-3">
+          <h1 className="text-white font-bold text-xl tracking-tight">Pivot</h1>
+          <button
+            onClick={() => setShowNewGame(true)}
+            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold px-3 py-1.5 rounded-full transition-colors"
+          >
+            <Plus size={15} />
+            New game
+          </button>
+        </div>
+
+        {/* Game selector */}
+        {activeGame ? (
+          <button
+            onClick={() => setShowGamePicker((o) => !o)}
+            className="mt-3 flex items-center gap-2 bg-white/15 rounded-xl px-3 py-2 w-full text-left"
+          >
+            <div className="flex-1">
+              <p className="text-white font-semibold text-sm">
+                {activeGame.opponent ? `vs ${activeGame.opponent}` : 'Game'}
+              </p>
+              <p className="text-emerald-100 text-xs">{formatDate(activeGame.date)}</p>
+            </div>
+            <ChevronDown
+              size={16}
+              className={`text-white/70 transition-transform ${showGamePicker ? 'rotate-180' : ''}`}
+            />
+          </button>
+        ) : (
+          <div className="mt-3 text-emerald-100 text-sm">Tap + New game to get started</div>
+        )}
+
+        {/* Game picker dropdown */}
+        {showGamePicker && games.length > 0 && (
+          <div className="mt-1 bg-white rounded-xl shadow-lg overflow-hidden">
+            {games.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => { setActiveGame(g.id); setShowGamePicker(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 text-left border-b border-slate-50 last:border-0 ${
+                  g.id === activeGame?.id ? 'bg-emerald-50' : ''
+                }`}
+              >
+                <div>
+                  <p className={`font-medium text-sm ${g.id === activeGame?.id ? 'text-emerald-700' : 'text-slate-800'}`}>
+                    {g.opponent ? `vs ${g.opponent}` : 'Game'}
+                  </p>
+                  <p className="text-xs text-slate-400">{formatDate(g.date)}</p>
+                </div>
+                {g.id === activeGame?.id && (
+                  <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Main content */}
+      {activeGame ? (
+        <div className="flex-1 overflow-y-auto pb-24">
+          {/* Quarter tabs */}
+          <div className="flex gap-2 px-4 pt-4 pb-1">
+            {QUARTERS.map((q) => {
+              const assigned = Object.keys(activeGame.quarters[q]).length;
+              return (
+                <button
+                  key={q}
+                  onClick={() => setQuarter(q)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors relative ${
+                    quarter === q
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-white border border-slate-200 text-slate-600'
+                  }`}
+                >
+                  Q{q}
+                  {assigned > 0 && (
+                    <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold ${
+                      quarter === q ? 'bg-white text-emerald-600' : 'bg-emerald-500 text-white'
+                    }`}>
+                      {assigned}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Copy + Share controls */}
+          <div className="flex gap-2 px-4 pt-2 pb-1">
+            {/* Copy from previous */}
+            {quarter > 1 && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowCopyMenu((o) => !o)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white px-3 py-2 rounded-xl"
+                >
+                  <Copy size={13} />
+                  Copy from…
+                </button>
+                {showCopyMenu && (
+                  <div className="absolute top-full left-0 mt-1 bg-white rounded-xl shadow-lg border border-slate-100 z-10 overflow-hidden">
+                    {QUARTERS.filter((q) => q < quarter).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => handleCopyFrom(q)}
+                        className="block w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                      >
+                        Quarter {q}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Share */}
+            <div className="relative ml-auto">
+              <button
+                onClick={() => handleShare('link')}
+                className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 border border-emerald-200 bg-emerald-50 px-3 py-2 rounded-xl"
+              >
+                <Share2 size={13} />
+                Share
+              </button>
+            </div>
+            <button
+              onClick={() => handleShare('text')}
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white px-3 py-2 rounded-xl"
+            >
+              WhatsApp
+            </button>
+          </div>
+
+          {/* Quarter board */}
+          <QuarterBoard
+            game={activeGame}
+            quarter={quarter}
+            players={players}
+            onAssign={handleAssign}
+            onAddInjury={(q, playerId, description) =>
+              addMidGameInjury(activeGame.id, { playerId, quarter: q, description })
+            }
+            onRemoveInjury={(playerId) => removeMidGameInjury(activeGame.id, playerId)}
+          />
+
+          {/* Smart suggestions */}
+          <SmartSuggestions tips={tips} />
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-8 pb-24">
+          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+            <Plus size={36} className="text-emerald-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 mb-2">No games yet</h2>
+          <p className="text-slate-500 text-sm mb-6">
+            Create your first game to start planning your lineup
+          </p>
+          <button
+            onClick={() => setShowNewGame(true)}
+            className="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl"
+          >
+            Create first game
+          </button>
+        </div>
+      )}
+
+      {/* Toast */}
+      {shareToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm font-medium px-4 py-2 rounded-full shadow-lg z-50">
+          {shareToast}
+        </div>
+      )}
+
+      {/* New game modal */}
+      {showNewGame && (
+        <NewGameModal onClose={() => setShowNewGame(false)} onCreate={createGame} />
+      )}
+    </div>
+  );
+}
