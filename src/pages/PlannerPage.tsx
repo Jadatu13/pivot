@@ -52,6 +52,9 @@ export default function PlannerPage() {
   async function handleShare(mode: 'link' | 'text') {
     if (!activeGame) return;
     if (mode === 'link') {
+      // Sync to KV first so the link is immediately live for recipients
+      setShareToast('Syncing…');
+      await syncGameToServer({ game: activeGame, players });
       const url = buildShareUrl(activeGame.id);
       // Use native share sheet on iOS/Android, fall back to clipboard on desktop
       if (navigator.share) {
@@ -60,6 +63,7 @@ export default function PlannerPage() {
             title: `Pivot Playbook${activeGame.opponent ? ` — vs ${activeGame.opponent}` : ''}`,
             url,
           });
+          setShareToast('');
           return;
         } catch {
           // user cancelled or share failed — fall through to clipboard

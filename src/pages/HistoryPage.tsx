@@ -4,7 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
 import type { Game, Quarter } from '../types';
 import { ALL_SLOTS, QUARTERS } from '../types';
-import { buildShareUrl, buildShareText } from '../utils/sharing';
+import { buildShareUrl, buildShareText, syncGameToServer } from '../utils/sharing';
 
 function formatDate(dateStr: string) {
   return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-NZ', {
@@ -147,6 +147,7 @@ export default function HistoryPage() {
   const [shareToast, setShareToast] = useState('');
 
   async function handleShare(game: Game) {
+    await syncGameToServer({ game, players });
     const url = buildShareUrl(game.id);
     if (navigator.share) {
       try {

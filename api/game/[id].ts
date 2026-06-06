@@ -10,16 +10,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'OPTIONS') return res.status(204).end();
 
-  if (req.method === 'GET') {
-    const data = await kv.get(`game:${id}`);
-    if (!data) return res.status(404).json({ error: 'Not found' });
-    return res.json(data);
-  }
+  try {
+    if (req.method === 'GET') {
+      const data = await kv.get(`game:${id}`);
+      if (!data) return res.status(404).json({ error: 'Not found' });
+      return res.json(data);
+    }
 
-  if (req.method === 'PUT') {
-    // 180-day TTL — long enough for a season
-    await kv.set(`game:${id}`, req.body, { ex: 60 * 60 * 24 * 180 });
-    return res.status(200).json({ ok: true });
+    if (req.method === 'PUT') {
+      await kv.set(`game:${id}`, req.body, { ex: 60 * 60 * 24 * 180 });
+      return res.status(200).json({ ok: true });
+    }
+  } catch (err) {
+    console.error('KV error:', err);
+    return res.status(500).json({ error: 'Storage unavailable' });
   }
 
   return res.status(405).end();
