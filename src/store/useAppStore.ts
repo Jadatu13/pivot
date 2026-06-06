@@ -168,3 +168,6 @@ export const selectActiveGame = (s: AppStore) =>
 
 export const selectPlayerById = (players: Player[]) =>
   Object.fromEntries(players.map((p) => [p.id, p]));
+
+export const selectSortedPlayers = (s: AppStore) =>
+  [...s.players].sort((a, b) => a.name.localeCompare(b.name));

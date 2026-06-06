@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronRight, Trash2, Share2, AlertTriangle } from 'lucide-react';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, selectSortedPlayers } from '../store/useAppStore';
 import { useNavigate } from 'react-router-dom';
 import type { Game, Quarter } from '../types';
 import { ALL_SLOTS, QUARTERS } from '../types';
@@ -137,7 +137,7 @@ function GameDetail({ game, onClose, onDelete, onShare }: GameDetailProps) {
 }
 
 export default function HistoryPage() {
-  const players = useAppStore((s) => s.players);
+  const players = useAppStore(selectSortedPlayers);
   const games = useAppStore((s) => s.games);
   const deleteGame = useAppStore((s) => s.deleteGame);
   const setActiveGame = useAppStore((s) => s.setActiveGame);

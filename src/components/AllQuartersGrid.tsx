@@ -120,10 +120,10 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
 
         {/* Court time summary row */}
         {players.length > 0 && (
-          <div className="mt-4 bg-white border border-slate-200 rounded-xl p-3">
+          <div className="mt-4 mb-2 bg-white border border-slate-200 rounded-xl p-3">
             <p className="text-xs font-semibold text-slate-500 mb-2">Court time per player</p>
             <div className="space-y-1.5">
-              {players.map((player) => {
+              {[...players].sort((a, b) => a.name.localeCompare(b.name)).map((player) => {
                 const qts = QUARTERS.reduce((acc, q) => {
                   const inCourt = Object.entries(game.quarters[q]).some(
                     ([slot, pid]) => pid === player.id && slot !== 'Sub'

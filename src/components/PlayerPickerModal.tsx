@@ -44,8 +44,9 @@ export default function PlayerPickerModal({
   onClose,
 }: Props) {
   const scored = scorePlayers(players, game, quarter, slot);
-  const available = scored.filter((s) => !s.excluded);
-  const unavailable = scored.filter((s) => s.excluded);
+  // Sort alphabetically within each group — predictable order helps muscle memory
+  const available = scored.filter((s) => !s.excluded).sort((a, b) => a.player.name.localeCompare(b.player.name));
+  const unavailable = scored.filter((s) => s.excluded).sort((a, b) => a.player.name.localeCompare(b.player.name));
 
   const slotLabel = slot === 'Sub' ? 'Sub' : `${slot} — ${POSITION_LABELS[slot as typeof POSITIONS[number]]}`;
 

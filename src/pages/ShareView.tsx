@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
 import type { Quarter, SlotKey } from '../types';
 import { ALL_SLOTS, QUARTERS, POSITION_ZONE, POSITIONS } from '../types';
 import { decodeShare } from '../utils/sharing';
@@ -17,16 +17,84 @@ const ZONE_BADGE: Record<string, string> = {
   sub:     'bg-slate-50 text-slate-500 border-slate-200',
 };
 
+interface PlayerDetail {
+  playerName: string;
+  slot: SlotKey;
+  quarter: Quarter;
+  note?: string;
+  injury?: { quarter: Quarter; description: string };
+  preGameInjury?: string;
+}
+
+function PlayerDetailSheet({ detail, onClose }: { detail: PlayerDetail; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative w-full bg-white rounded-t-2xl pb-10">
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-10 h-1 rounded-full bg-slate-200" />
+        </div>
+        <div className="flex items-start justify-between px-4 pb-3 border-b border-slate-100">
+          <div>
+            <p className="text-xs text-slate-500 font-medium">Q{detail.quarter} · {detail.slot}</p>
+            <p className="text-lg font-bold text-slate-900">{detail.playerName}</p>
+          </div>
+          <button onClick={onClose} className="p-1 text-slate-400 mt-1"><X size={20} /></button>
+        </div>
+        <div className="px-4 pt-3 space-y-3">
+          {detail.note && (
+            <div className="bg-violet-50 border border-violet-100 rounded-xl p-3">
+              <p className="text-xs font-semibold text-violet-600 mb-0.5">Note</p>
+              <p className="text-sm text-violet-900">{detail.note}</p>
+            </div>
+          )}
+          {detail.injury && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-xs font-semibold text-amber-700 mb-0.5">Mid-game injury (Q{detail.injury.quarter})</p>
+              <p className="text-sm text-amber-900">{detail.injury.description}</p>
+            </div>
+          )}
+          {detail.preGameInjury && !detail.injury && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <p className="text-xs font-semibold text-amber-700 mb-0.5">Pre-game injury note</p>
+              <p className="text-sm text-amber-900">{detail.preGameInjury}</p>
+            </div>
+          )}
+          {!detail.note && !detail.injury && !detail.preGameInjury && (
+            <p className="text-sm text-slate-400 text-center py-2">No notes or injuries recorded.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReadOnlyGrid({ data }: { data: ShareData }) {
   const { game, players } = data;
   const byId = Object.fromEntries(players.map((p) => [p.id, p]));
   const injuredIds = new Set(game.midGameInjuries.map((i) => i.playerId));
+  const [detail, setDetail] = useState<PlayerDetail | null>(null);
   // Per-quarter injury sets
   const injuredByQ: Record<number, Set<string>> = {};
   for (const q of QUARTERS) {
     injuredByQ[q] = new Set(
       game.midGameInjuries.filter((i) => i.quarter <= q).map((i) => i.playerId)
     );
+  }
+
+  function openDetail(player: (typeof byId)[string], slot: SlotKey, q: Quarter) {
+    if (!player) return;
+    const note = game.quarterNotes?.[q]?.[slot];
+    const injury = game.midGameInjuries.find((i) => i.playerId === player.id);
+    if (!note && !injury && !player.activeInjury) return; // nothing to show
+    setDetail({
+      playerName: player.name,
+      slot,
+      quarter: q,
+      note,
+      injury: injury ? { quarter: injury.quarter, description: injury.description } : undefined,
+      preGameInjury: player.activeInjury,
+    });
   }
 
   return (
@@ -50,16 +118,19 @@ function ReadOnlyGrid({ data }: { data: ShareData }) {
               const player = pid ? byId[pid] : null;
               const isInjured = player ? injuredByQ[q].has(player.id) : false;
               const note = game.quarterNotes?.[q]?.[slot];
+              const hasDetail = player && (note || isInjured || player.activeInjury);
+              const Cell = hasDetail ? 'button' : 'div';
               return (
-                <div
+                <Cell
                   key={q}
+                  onClick={hasDetail ? () => openDetail(player, slot, q) : undefined}
                   className={`rounded-lg border text-center py-2 px-1 text-xs leading-tight relative ${
                     isInjured
                       ? 'bg-amber-50 border-amber-200 text-amber-600'
                       : player
                       ? 'bg-white border-slate-200 text-slate-800 font-medium'
                       : 'bg-slate-50 border-slate-100 text-slate-300'
-                  }`}
+                  } ${hasDetail ? 'active:opacity-70' : ''}`}
                 >
                   {player ? (
                     <span className="block truncate">
@@ -68,20 +139,20 @@ function ReadOnlyGrid({ data }: { data: ShareData }) {
                   ) : (
                     <span className="text-slate-200">—</span>
                   )}
-                  {note && (
+                  {(note || isInjured) && (
                     <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-violet-400" />
                   )}
-                </div>
+                </Cell>
               );
             })}
           </div>
         );
       })}
 
-      <div className="mt-4 bg-white border border-slate-200 rounded-xl p-3">
+      <div className="mt-4 mb-2 bg-white border border-slate-200 rounded-xl p-3">
         <p className="text-xs font-semibold text-slate-500 mb-2">Court time</p>
         <div className="space-y-1.5">
-          {players.map((player) => {
+          {[...players].sort((a, b) => a.name.localeCompare(b.name)).map((player) => {
             const qts = QUARTERS.reduce((acc, q) => {
               const inCourt = Object.entries(game.quarters[q]).some(
                 ([slot, pid]) => pid === player.id && slot !== 'Sub'
@@ -119,7 +190,7 @@ function ReadOnlyGrid({ data }: { data: ShareData }) {
       </div>
 
       {game.midGameInjuries.length > 0 && (
-        <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <div className="mt-3 mb-2 bg-amber-50 border border-amber-200 rounded-xl p-3">
           <p className="text-xs font-semibold text-amber-700 mb-1.5">Mid-game injuries</p>
           {game.midGameInjuries.map((inj) => {
             const p = byId[inj.playerId];
@@ -131,6 +202,8 @@ function ReadOnlyGrid({ data }: { data: ShareData }) {
           })}
         </div>
       )}
+
+      {detail && <PlayerDetailSheet detail={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }
@@ -146,6 +219,7 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
   const injuredIds = new Set(
     game.midGameInjuries.filter((i) => i.quarter <= activeQ).map((i) => i.playerId)
   );
+  const [detail, setDetail] = useState<PlayerDetail | null>(null);
 
   return (
     <>
@@ -173,8 +247,24 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
           const isInjured = player ? injuredIds.has(player.id) : false;
           const zone = slot !== 'Sub' ? POSITION_ZONE[slot as typeof POSITIONS[number]] : 'sub';
           const note = game.quarterNotes?.[activeQ]?.[slot];
+          const hasDetail = player && (note || isInjured || player.activeInjury);
           return (
-            <div key={slot} className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-3.5">
+            <button
+              key={slot}
+              disabled={!hasDetail}
+              onClick={() => {
+                if (!player || !hasDetail) return;
+                setDetail({
+                  playerName: player.name,
+                  slot,
+                  quarter: activeQ,
+                  note,
+                  injury: injury ? { quarter: injury.quarter, description: injury.description } : undefined,
+                  preGameInjury: player.activeInjury,
+                });
+              }}
+              className={`w-full flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-3 py-3.5 text-left ${hasDetail ? 'active:bg-slate-50' : ''}`}
+            >
               <div className={`w-11 text-center text-xs font-bold py-1.5 rounded-lg border flex-shrink-0 ${ZONE_BADGE[zone]}`}>
                 {slot}
               </div>
@@ -189,6 +279,7 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
                           Injured Q{injury.quarter}
                         </span>
                       )}
+                      {note && <span className="w-1.5 h-1.5 rounded-full bg-violet-400 flex-shrink-0" />}
                     </div>
                     {note && <p className="text-xs text-slate-400 mt-0.5">{note}</p>}
                   </div>
@@ -196,7 +287,8 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
                   <span className="text-slate-400 text-sm italic">Not assigned</span>
                 )}
               </div>
-            </div>
+              {hasDetail && <span className="text-slate-300 text-xs flex-shrink-0">›</span>}
+            </button>
           );
         })}
 
@@ -214,6 +306,8 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
           </div>
         )}
       </div>
+
+      {detail && <PlayerDetailSheet detail={detail} onClose={() => setDetail(null)} />}
     </>
   );
 }

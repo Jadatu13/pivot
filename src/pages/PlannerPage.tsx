@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, ChevronDown, Copy, Share2 } from 'lucide-react';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, selectSortedPlayers } from '../store/useAppStore';
 import type { Quarter, SlotKey } from '../types';
 import { QUARTERS } from '../types';
 import QuarterBoard from '../components/QuarterBoard';
@@ -13,7 +13,7 @@ import { buildShareUrl, buildShareText, syncGameToServer } from '../utils/sharin
 type ViewMode = 'all' | 'quarter';
 
 export default function PlannerPage() {
-  const players = useAppStore((s) => s.players);
+  const players = useAppStore(selectSortedPlayers);
   const games = useAppStore((s) => s.games);
   const activeGameId = useAppStore((s) => s.activeGameId);
   const createGame = useAppStore((s) => s.createGame);
