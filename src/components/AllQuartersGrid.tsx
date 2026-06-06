@@ -18,7 +18,7 @@ type CellTarget = { quarter: Quarter; slot: SlotKey };
 
 const ZONE_STYLES: Record<string, { badge: string }> = {
   attack:  { badge: 'bg-rose-50 text-rose-700 border-rose-200' },
-  mid:     { badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  mid:     { badge: 'bg-violet-50 text-violet-700 border-violet-200' },
   defence: { badge: 'bg-blue-50 text-blue-700 border-blue-200' },
   sub:     { badge: 'bg-slate-50 text-slate-500 border-slate-200' },
 };
@@ -56,7 +56,7 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
               <div key={q} className="text-center">
                 <span className="text-xs font-bold text-slate-500">Q{q}</span>
                 {filled > 0 && (
-                  <span className="ml-1 text-xs text-emerald-500 font-semibold">{filled}</span>
+                  <span className="ml-1 text-xs text-violet-500 font-semibold">{filled}</span>
                 )}
               </div>
             );
@@ -140,7 +140,7 @@ export default function AllQuartersGrid({ game, players, onAssign, onAddInjury, 
                             key={q}
                             className={`flex-1 h-4 rounded text-center text-xs leading-4 font-bold ${
                               inCourt
-                                ? 'bg-emerald-500 text-white'
+                                ? 'bg-violet-500 text-white'
                                 : isSub
                                 ? 'bg-slate-200 text-slate-500'
                                 : 'bg-slate-100 text-transparent'

@@ -37,7 +37,7 @@ export default function NewGameModal({ onClose, onCreate }: Props) {
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           </div>
 
@@ -50,13 +50,13 @@ export default function NewGameModal({ onClose, onCreate }: Props) {
               value={opponent}
               onChange={(e) => setOpponent(e.target.value)}
               placeholder="e.g. Herne Bay"
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl py-3 transition-colors"
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl py-3 transition-colors"
           >
             Create Game
           </button>

@@ -14,7 +14,7 @@ interface Props {
 }
 
 const TAG_COLOURS: Record<string, string> = {
-  Preferred: 'bg-emerald-100 text-emerald-700',
+  Preferred: 'bg-violet-100 text-violet-700',
   "Hasn't played": 'bg-blue-100 text-blue-700',
   'Was sub': 'bg-violet-100 text-violet-700',
   'Sat out last Q': 'bg-indigo-100 text-indigo-700',
@@ -27,7 +27,7 @@ function CourtTimePips({ count }: { count: number }) {
       {[1, 2, 3, 4].map((q) => (
         <div
           key={q}
-          className={`w-2 h-2 rounded-full ${q <= count ? 'bg-emerald-500' : 'bg-slate-200'}`}
+          className={`w-2 h-2 rounded-full ${q <= count ? 'bg-violet-500' : 'bg-slate-200'}`}
         />
       ))}
     </div>
@@ -91,12 +91,12 @@ export default function PlayerPickerModal({
                 onClick={() => { onSelect(player.id); onClose(); }}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${
                   isCurrentPlayer
-                    ? 'bg-emerald-50 border-2 border-emerald-400'
+                    ? 'bg-violet-50 border-2 border-violet-400'
                     : 'bg-slate-50 border border-slate-100 active:bg-slate-100'
                 }`}
               >
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-11 h-11 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">
                     {player.name.slice(0, 2).toUpperCase()}
                   </span>
@@ -106,7 +106,7 @@ export default function PlayerPickerModal({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-900 truncate">{player.name}</span>
-                    {isPreferred && <Star size={13} className="text-emerald-500 flex-shrink-0" fill="currentColor" />}
+                    {isPreferred && <Star size={13} className="text-violet-500 flex-shrink-0" fill="currentColor" />}
                     {player.activeInjury && <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />}
                     {lastPlayed && (
                       <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">

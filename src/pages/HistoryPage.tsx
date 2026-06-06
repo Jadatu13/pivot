@@ -36,7 +36,7 @@ function GameDetail({ game, onClose, onDelete, onShare }: GameDetailProps) {
   return (
     <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col">
       {/* Header */}
-      <div className="bg-emerald-600 pt-safe px-4 pb-4 flex-shrink-0">
+      <div className="bg-violet-600 pt-safe px-4 pb-4 flex-shrink-0">
         <div className="flex items-center justify-between pt-3">
           <button onClick={onClose} className="text-white/80 text-sm font-medium">
             ← Back
@@ -60,7 +60,7 @@ function GameDetail({ game, onClose, onDelete, onShare }: GameDetailProps) {
         <h2 className="text-white font-bold text-lg mt-2">
           {game.opponent ? `vs ${game.opponent}` : 'Game'}
         </h2>
-        <p className="text-emerald-100 text-sm">{formatDate(game.date)}</p>
+        <p className="text-violet-100 text-sm">{formatDate(game.date)}</p>
       </div>
 
       {/* Quarter tabs */}
@@ -71,7 +71,7 @@ function GameDetail({ game, onClose, onDelete, onShare }: GameDetailProps) {
             onClick={() => setActiveQ(q)}
             className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors ${
               activeQ === q
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-violet-600 text-white'
                 : 'bg-white border border-slate-200 text-slate-600'
             }`}
           >
@@ -173,10 +173,10 @@ export default function HistoryPage() {
       )}
 
       {/* Header */}
-      <div className="bg-emerald-600 pt-safe px-4 pb-5 flex-shrink-0">
+      <div className="bg-violet-600 pt-safe px-4 pb-5 flex-shrink-0">
         <div className="pt-3">
           <h1 className="text-white font-bold text-xl">History</h1>
-          <p className="text-emerald-100 text-sm mt-0.5">
+          <p className="text-violet-100 text-sm mt-0.5">
             {games.length} game{games.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -209,7 +209,7 @@ export default function HistoryPage() {
                         return (
                           <div
                             key={q}
-                            className={`w-2 h-2 rounded-full ${qCount > 0 ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                            className={`w-2 h-2 rounded-full ${qCount > 0 ? 'bg-violet-500' : 'bg-slate-200'}`}
                           />
                         );
                       })}

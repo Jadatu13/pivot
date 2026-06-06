@@ -76,7 +76,7 @@ export default function PlannerPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-emerald-600 pt-safe px-4 pb-4 flex-shrink-0">
+      <div className="bg-violet-600 pt-safe px-4 pb-4 flex-shrink-0">
         <div className="flex items-center justify-between pt-3">
           <h1 className="text-white font-bold text-xl tracking-tight">Pivot Playbook</h1>
           <button
@@ -98,7 +98,7 @@ export default function PlannerPage() {
               <p className="text-white font-semibold text-sm">
                 {activeGame.opponent ? `vs ${activeGame.opponent}` : 'Game'}
               </p>
-              <p className="text-emerald-100 text-xs">{formatDate(activeGame.date)}</p>
+              <p className="text-violet-100 text-xs">{formatDate(activeGame.date)}</p>
             </div>
             <ChevronDown
               size={16}
@@ -106,7 +106,7 @@ export default function PlannerPage() {
             />
           </button>
         ) : (
-          <div className="mt-3 text-emerald-100 text-sm">Tap + New game to get started</div>
+          <div className="mt-3 text-violet-100 text-sm">Tap + New game to get started</div>
         )}
 
         {/* Game picker dropdown */}
@@ -117,16 +117,16 @@ export default function PlannerPage() {
                 key={g.id}
                 onClick={() => { setActiveGame(g.id); setShowGamePicker(false); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-left border-b border-slate-50 last:border-0 ${
-                  g.id === activeGame?.id ? 'bg-emerald-50' : ''
+                  g.id === activeGame?.id ? 'bg-violet-50' : ''
                 }`}
               >
                 <div>
-                  <p className={`font-medium text-sm ${g.id === activeGame?.id ? 'text-emerald-700' : 'text-slate-800'}`}>
+                  <p className={`font-medium text-sm ${g.id === activeGame?.id ? 'text-violet-700' : 'text-slate-800'}`}>
                     {g.opponent ? `vs ${g.opponent}` : 'Game'}
                   </p>
                   <p className="text-xs text-slate-400">{formatDate(g.date)}</p>
                 </div>
-                {g.id === activeGame?.id && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
+                {g.id === activeGame?.id && <div className="w-2 h-2 rounded-full bg-violet-500" />}
               </button>
             ))}
           </div>
@@ -166,14 +166,14 @@ export default function PlannerPage() {
                       onClick={() => setQuarter(q)}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-colors relative ${
                         quarter === q
-                          ? 'bg-emerald-600 text-white shadow-sm'
+                          ? 'bg-violet-600 text-white shadow-sm'
                           : 'bg-white border border-slate-200 text-slate-600'
                       }`}
                     >
                       Q{q}
                       {assigned > 0 && (
                         <span className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs flex items-center justify-center font-bold ${
-                          quarter === q ? 'bg-white text-emerald-600' : 'bg-emerald-500 text-white'
+                          quarter === q ? 'bg-white text-violet-600' : 'bg-violet-500 text-white'
                         }`}>
                           {assigned}
                         </span>
@@ -212,7 +212,7 @@ export default function PlannerPage() {
                 <div className="ml-auto flex gap-2">
                   <button
                     onClick={() => handleShare('link')}
-                    className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 border border-emerald-200 bg-emerald-50 px-3 py-2 rounded-xl"
+                    className="flex items-center gap-1.5 text-xs font-medium text-violet-700 border border-violet-200 bg-violet-50 px-3 py-2 rounded-xl"
                   >
                     <Share2 size={13} />
                     Share
@@ -245,7 +245,7 @@ export default function PlannerPage() {
               <div className="flex gap-2 px-4 pt-3 pb-1 justify-end">
                 <button
                   onClick={() => handleShare('link')}
-                  className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 border border-emerald-200 bg-emerald-50 px-3 py-2 rounded-xl"
+                  className="flex items-center gap-1.5 text-xs font-medium text-violet-700 border border-violet-200 bg-violet-50 px-3 py-2 rounded-xl"
                 >
                   <Share2 size={13} />
                   Share
@@ -272,8 +272,8 @@ export default function PlannerPage() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-8 pb-24">
-          <div className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-            <Plus size={36} className="text-emerald-600" />
+          <div className="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center mb-4">
+            <Plus size={36} className="text-violet-600" />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">No games yet</h2>
           <p className="text-slate-500 text-sm mb-6">
@@ -281,7 +281,7 @@ export default function PlannerPage() {
           </p>
           <button
             onClick={() => setShowNewGame(true)}
-            className="bg-emerald-600 text-white font-semibold px-6 py-3 rounded-xl"
+            className="bg-violet-600 text-white font-semibold px-6 py-3 rounded-xl"
           >
             Create first game
           </button>

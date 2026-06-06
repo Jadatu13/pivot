@@ -18,7 +18,7 @@ interface Props {
 
 const ZONE_COLOURS: Record<string, { bg: string; text: string; border: string }> = {
   attack: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },
-  mid: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  mid: { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200' },
   defence: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   sub: { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
 };
@@ -78,7 +78,7 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
                       {player.name}
                     </span>
                     {isPreferred && !isInjured && (
-                      <Star size={12} className="text-emerald-500 flex-shrink-0" fill="currentColor" />
+                      <Star size={12} className="text-violet-500 flex-shrink-0" fill="currentColor" />
                     )}
                     {isInjured && injury && (
                       <span className="ml-1 text-xs font-medium bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex-shrink-0">

@@ -12,7 +12,7 @@ export default defineConfig({
         name: 'Pivot Playbook',
         short_name: 'Pivot',
         description: 'Quarter-by-quarter netball lineup planner for team captains',
-        theme_color: '#059669',
+        theme_color: '#7c3aed',
         background_color: '#f8fafc',
         display: 'standalone',
         orientation: 'portrait',

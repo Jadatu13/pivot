@@ -18,7 +18,7 @@ export default function Navigation() {
             end={to === '/'}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-0.5 py-2 text-xs font-medium transition-colors ${
-                isActive ? 'text-emerald-600' : 'text-slate-400'
+                isActive ? 'text-violet-600' : 'text-slate-400'
               }`
             }
           >
@@ -26,7 +26,7 @@ export default function Navigation() {
               <>
                 <Icon
                   size={22}
-                  className={isActive ? 'text-emerald-600' : 'text-slate-400'}
+                  className={isActive ? 'text-violet-600' : 'text-slate-400'}
                   strokeWidth={isActive ? 2.5 : 1.75}
                 />
                 {label}

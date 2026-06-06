@@ -51,7 +51,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Player name"
             autoFocus
-            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
 
@@ -69,7 +69,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
                   onClick={() => togglePosition(pos)}
                   className={`py-2.5 rounded-xl text-xs font-bold border transition-colors ${
                     selected
-                      ? 'bg-emerald-600 border-emerald-600 text-white'
+                      ? 'bg-violet-600 border-violet-600 text-white'
                       : 'border-slate-200 text-slate-600 bg-white'
                   }`}
                 >
@@ -97,7 +97,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
               setForm((f) => ({ ...f, activeInjury: e.target.value || undefined }))
             }
             placeholder="e.g. sore knee — cleared to play"
-            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </div>
 
@@ -114,7 +114,7 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
           <button
             onClick={() => form.name.trim() && onSave(form)}
             disabled={!form.name.trim()}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-semibold rounded-xl py-3 flex items-center justify-center gap-2"
+            className="flex-1 bg-violet-600 hover:bg-violet-700 disabled:opacity-40 text-white font-semibold rounded-xl py-3 flex items-center justify-center gap-2"
           >
             <Check size={17} />
             Save
@@ -136,7 +136,7 @@ export default function RosterPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="bg-emerald-600 pt-safe px-4 pb-5 flex-shrink-0">
+      <div className="bg-violet-600 pt-safe px-4 pb-5 flex-shrink-0">
         <div className="flex items-center justify-between pt-3">
           <h1 className="text-white font-bold text-xl">Roster</h1>
           <button
@@ -147,7 +147,7 @@ export default function RosterPage() {
             Add player
           </button>
         </div>
-        <p className="text-emerald-100 text-sm mt-1">
+        <p className="text-violet-100 text-sm mt-1">
           {players.length} player{players.length !== 1 ? 's' : ''}
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function RosterPage() {
               className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3"
             >
               {/* Avatar */}
-              <div className="w-11 h-11 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
+              <div className="w-11 h-11 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-sm">
                   {player.name.slice(0, 2).toUpperCase()}
                 </span>
@@ -187,7 +187,7 @@ export default function RosterPage() {
                     {player.preferredPositions.map((pos) => (
                       <span
                         key={pos}
-                        className="text-xs bg-emerald-50 text-emerald-700 font-semibold px-1.5 py-0.5 rounded"
+                        className="text-xs bg-violet-50 text-violet-700 font-semibold px-1.5 py-0.5 rounded"
                       >
                         {pos}
                       </span>
