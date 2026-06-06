@@ -218,6 +218,8 @@ function SingleQuarterView({ data, activeQ, setActiveQ }: {
   );
 }
 
+const POLL_MS = 10_000;
+
 export default function ShareView() {
   const { data: param } = useParams<{ data: string }>();
   const [activeQ, setActiveQ] = useState<Quarter>(1);
@@ -225,33 +227,48 @@ export default function ShareView() {
   const [shareData, setShareData] = useState<ShareData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [pulse, setPulse] = useState(false);
+  const isLive = !!param && UUID_RE.test(param);
 
+  // Initial load
   useEffect(() => {
     if (!param) { setError('Invalid share link.'); setLoading(false); return; }
 
     if (UUID_RE.test(param)) {
-      // Live share — fetch from Vercel KV via API
       fetch(`/api/game/${param}`)
-        .then((r) => {
-          if (!r.ok) throw new Error('not_found');
-          return r.json();
-        })
-        .then((d) => { setShareData(d); setLoading(false); })
-        .catch(() => {
-          setError('Lineup not found — it may not have been synced yet.');
-          setLoading(false);
-        });
+        .then((r) => { if (!r.ok) throw new Error('not_found'); return r.json(); })
+        .then((d) => { setShareData(d); setLastUpdated(new Date()); setLoading(false); })
+        .catch(() => { setError('Lineup not found — it may not have been synced yet.'); setLoading(false); });
     } else {
-      // Legacy lz-string URL — decode inline
       const decoded = decodeShare(param);
-      if (decoded) {
-        setShareData(decoded);
-      } else {
-        setError('Could not load lineup — link may be corrupted.');
-      }
+      if (decoded) { setShareData(decoded); } else { setError('Could not load lineup — link may be corrupted.'); }
       setLoading(false);
     }
   }, [param]);
+
+  // Live polling for UUID links
+  useEffect(() => {
+    if (!isLive || loading) return;
+    const interval = setInterval(() => {
+      fetch(`/api/game/${param}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (!d) return;
+          setShareData((prev) => {
+            const changed = JSON.stringify(d) !== JSON.stringify(prev);
+            if (changed) {
+              setLastUpdated(new Date());
+              setPulse(true);
+              setTimeout(() => setPulse(false), 1000);
+            }
+            return changed ? d : prev;
+          });
+        })
+        .catch(() => {});
+    }, POLL_MS);
+    return () => clearInterval(interval);
+  }, [isLive, loading, param]);
 
   if (loading) {
     return (
@@ -279,11 +296,26 @@ export default function ShareView() {
     <div className="min-h-screen bg-slate-50">
       <div className="bg-violet-600 px-4 pt-safe pb-5">
         <div className="pt-4">
-          <p className="text-violet-200 text-xs font-semibold uppercase tracking-widest">Pivot Playbook</p>
+          <div className="flex items-center justify-between">
+            <p className="text-violet-200 text-xs font-semibold uppercase tracking-widest">Pivot Playbook</p>
+            {isLive && (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-violet-100">
+                <span className={`w-2 h-2 rounded-full ${pulse ? 'bg-white' : 'bg-green-400'} transition-colors duration-300`} />
+                Live
+              </span>
+            )}
+          </div>
           <h1 className="text-white font-bold text-2xl mt-0.5">
             {game.opponent ? `vs ${game.opponent}` : 'Lineup'}
           </h1>
-          <p className="text-violet-100 text-sm mt-0.5">{formatDate(game.date)}</p>
+          <p className="text-violet-100 text-sm mt-0.5">
+            {formatDate(game.date)}
+            {lastUpdated && (
+              <span className="ml-2 opacity-60">
+                · updated {lastUpdated.toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
