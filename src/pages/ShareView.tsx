@@ -433,7 +433,10 @@ export default function ShareView() {
         <SingleQuarterView data={shareData} activeQ={activeQ} setActiveQ={setActiveQ} />
       )}
 
-      <div className="text-center pt-6 pb-16 text-xs text-slate-400">
+      <div
+        className="text-center pt-6 text-xs text-slate-400"
+        style={{ paddingBottom: 'max(4rem, calc(env(safe-area-inset-bottom, 0px) + 4rem))' }}
+      >
         Shared via Pivot Playbook
       </div>
     </div>
