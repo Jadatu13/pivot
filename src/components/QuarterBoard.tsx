@@ -77,9 +77,6 @@ export default function QuarterBoard({ game, quarter, players, onAssign, onAddIn
                     <span className={`font-semibold truncate ${isInjured ? 'text-slate-400 line-through' : 'text-slate-900'}`}>
                       {player.name}
                     </span>
-                    {player.number != null && (
-                      <span className="text-xs text-slate-400 flex-shrink-0">#{player.number}</span>
-                    )}
                     {isPreferred && !isInjured && (
                       <Star size={12} className="text-emerald-500 flex-shrink-0" fill="currentColor" />
                     )}

@@ -2,6 +2,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Player, Game, Quarter, SlotKey, GameInjury, QuarterLineup } from '../types';
 
+const DEFAULT_PLAYERS: Player[] = [
+  'Leah', 'Indy', 'Arwen', 'Lauren', 'Lani', 'Harmonie', 'Katana', 'Steph',
+].map((name) => ({ id: crypto.randomUUID(), name, preferredPositions: [] }));
+
 interface AppStore {
   players: Player[];
   games: Game[];
@@ -30,7 +34,7 @@ const emptyQuarters = (): Record<Quarter, QuarterLineup> => ({
 export const useAppStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      players: [],
+      players: DEFAULT_PLAYERS,
       games: [],
       activeGameId: null,
 

@@ -51,7 +51,7 @@ export function buildShareText(data: ShareData): string {
     for (const [slot, pid] of entries) {
       const p = pid ? byId[pid] : null;
       if (p) {
-        lines.push(`${slot.padEnd(3)}  ${p.name}${p.number != null ? ` #${p.number}` : ''}`);
+        lines.push(`${slot.padEnd(3)}  ${p.name}`);
       }
     }
     lines.push('');

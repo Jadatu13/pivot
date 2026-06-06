@@ -7,7 +7,7 @@ import { POSITIONS, POSITION_LABELS } from '../types';
 type EditingPlayer = Omit<Player, 'id'> & { id?: string };
 
 function emptyPlayer(): EditingPlayer {
-  return { name: '', number: undefined, preferredPositions: [], activeInjury: undefined };
+  return { name: '', preferredPositions: [], activeInjury: undefined };
 }
 
 interface PlayerFormProps {
@@ -51,24 +51,6 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Player name"
             autoFocus
-            className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-        </div>
-
-        {/* Jersey number */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">
-            Jersey # <span className="text-slate-400 font-normal">(optional)</span>
-          </label>
-          <input
-            type="number"
-            value={form.number ?? ''}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, number: e.target.value ? parseInt(e.target.value) : undefined }))
-            }
-            placeholder="e.g. 7"
-            min={1}
-            max={99}
             className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -188,7 +170,7 @@ export default function RosterPage() {
               {/* Avatar */}
               <div className="w-11 h-11 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-sm">
-                  {player.number != null ? `#${player.number}` : player.name.slice(0, 2).toUpperCase()}
+                  {player.name.slice(0, 2).toUpperCase()}
                 </span>
               </div>
 
@@ -225,7 +207,6 @@ export default function RosterPage() {
                   setEditing({
                     id: player.id,
                     name: player.name,
-                    number: player.number,
                     preferredPositions: [...player.preferredPositions],
                     activeInjury: player.activeInjury,
                   })
@@ -247,14 +228,12 @@ export default function RosterPage() {
             if (editing.id) {
               updatePlayer(editing.id, {
                 name: p.name,
-                number: p.number,
                 preferredPositions: p.preferredPositions,
                 activeInjury: p.activeInjury,
               });
             } else {
               addPlayer({
                 name: p.name,
-                number: p.number,
                 preferredPositions: p.preferredPositions,
                 activeInjury: p.activeInjury,
               });

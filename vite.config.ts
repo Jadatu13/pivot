@@ -9,7 +9,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Pivot — Netball Planner',
+        name: 'Pivot Playbook',
         short_name: 'Pivot',
         description: 'Quarter-by-quarter netball lineup planner for team captains',
         theme_color: '#059669',

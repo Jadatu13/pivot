@@ -100,9 +100,6 @@ function GameDetail({ game, onClose, onDelete, onShare }: GameDetailProps) {
                 {player ? (
                   <div className="flex items-center gap-1.5">
                     <span className="font-semibold text-slate-900 truncate">{player.name}</span>
-                    {player.number != null && (
-                      <span className="text-xs text-slate-400">#{player.number}</span>
-                    )}
                     {injury && (
                       <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                         <AlertTriangle size={10} />

@@ -36,7 +36,6 @@ export interface GameInjury {
 export interface Player {
   id: string;
   name: string;
-  number?: number;
   preferredPositions: Position[];
   activeInjury?: string;
 }
