@@ -25,7 +25,7 @@ export default function EditGameModal({ game, onClose, onSave, onDelete }: Props
     <div className="fixed inset-0 z-50 flex items-end">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div
-        className="relative w-full bg-white rounded-t-2xl p-5 pb-10 space-y-4"
+        className="relative w-full bg-white rounded-t-2xl p-5 pb-10 space-y-4 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export default function EditGameModal({ game, onClose, onSave, onDelete }: Props
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              className="w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
+              className="w-full min-w-0 max-w-full border border-slate-300 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500"
             />
           </div>
 
