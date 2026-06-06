@@ -82,7 +82,7 @@ export default function PlayerPickerModal({
 
         {/* Player list */}
         <div className="overflow-y-auto flex-1 px-4 py-2 space-y-1.5">
-          {available.map(({ player, tags, courtTime }) => {
+          {available.map(({ player, tags, courtTime, lastPlayed }) => {
             const isCurrentPlayer = player.id === currentPlayerId;
             const isPreferred = slot !== 'Sub' && player.preferredPositions.includes(slot as typeof POSITIONS[number]);
             return (
@@ -108,6 +108,11 @@ export default function PlayerPickerModal({
                     <span className="font-semibold text-slate-900 truncate">{player.name}</span>
                     {isPreferred && <Star size={13} className="text-emerald-500 flex-shrink-0" fill="currentColor" />}
                     {player.activeInjury && <AlertTriangle size={13} className="text-amber-500 flex-shrink-0" />}
+                    {lastPlayed && (
+                      <span className="text-xs bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-medium flex-shrink-0">
+                        Q{lastPlayed.quarter} {lastPlayed.position}
+                      </span>
+                    )}
                   </div>
                   {tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">

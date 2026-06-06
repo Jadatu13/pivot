@@ -8,6 +8,7 @@ export interface PlayerScore {
   excluded: boolean;
   excludeReason?: string;
   courtTime: number;
+  lastPlayed?: { position: SlotKey; quarter: Quarter };
 }
 
 export function getCourtTime(players: Player[], game: Game, upToQuarter: Quarter): Record<string, number> {
@@ -99,7 +100,18 @@ export function scorePlayers(
         }
       }
 
-      return { player, score, tags, excluded, excludeReason, courtTime: courtTime[player.id] ?? 0 };
+      // Find most recent quarter this player appeared in (before current)
+      let lastPlayed: PlayerScore['lastPlayed'];
+      for (let q = quarter - 1; q >= 1; q--) {
+        const qLineup = game.quarters[q as Quarter];
+        const entry = Object.entries(qLineup).find(([, pid]) => pid === player.id);
+        if (entry) {
+          lastPlayed = { position: entry[0] as SlotKey, quarter: q as Quarter };
+          break;
+        }
+      }
+
+      return { player, score, tags, excluded, excludeReason, courtTime: courtTime[player.id] ?? 0, lastPlayed };
     })
     .sort((a, b) => {
       if (a.excluded !== b.excluded) return a.excluded ? 1 : -1;
