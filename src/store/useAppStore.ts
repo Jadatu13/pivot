@@ -6,6 +6,12 @@ const DEFAULT_PLAYERS: Player[] = [
   'Leah', 'Indy', 'Arwen', 'Lauren', 'Lani', 'Harmony', 'Katana', 'Steph',
 ].map((name) => ({ id: crypto.randomUUID(), name, preferredPositions: [] }));
 
+export interface ExportPayload {
+  version: number;
+  players: Player[];
+  games: Game[];
+}
+
 interface AppStore {
   players: Player[];
   games: Game[];
@@ -27,6 +33,8 @@ interface AppStore {
 
   addMidGameInjury: (gameId: string, injury: GameInjury) => void;
   removeMidGameInjury: (gameId: string, playerId: string) => void;
+
+  importData: (payload: ExportPayload) => void;
 }
 
 const emptyQuarters = (): Record<Quarter, QuarterLineup> => ({ 1: {}, 2: {}, 3: {}, 4: {} });
@@ -157,6 +165,13 @@ export const useAppStore = create<AppStore>()(
               : { ...g, midGameInjuries: g.midGameInjuries.filter((i) => i.playerId !== playerId) }
           ),
         })),
+
+      importData: (payload) =>
+        set({
+          players: payload.players,
+          games: payload.games,
+          activeGameId: payload.games[0]?.id ?? null,
+        }),
     }),
     {
       name: 'pivot-v1',

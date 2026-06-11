@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Plus, Pencil, Trash2, X, Check, AlertTriangle } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Pencil, Trash2, X, Check, AlertTriangle, Download, Upload } from 'lucide-react';
 import { useAppStore, selectSortedPlayers } from '../store/useAppStore';
+import type { ExportPayload } from '../store/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { Player, Position } from '../types';
 import { POSITIONS, POSITION_LABELS } from '../types';
@@ -132,11 +133,55 @@ function PlayerForm({ initial, onSave, onCancel, onDelete }: PlayerFormProps) {
 
 export default function RosterPage() {
   const players = useAppStore(useShallow(selectSortedPlayers));
+  const games = useAppStore((s) => s.games);
   const addPlayer = useAppStore((s) => s.addPlayer);
   const updatePlayer = useAppStore((s) => s.updatePlayer);
   const deletePlayer = useAppStore((s) => s.deletePlayer);
+  const importData = useAppStore((s) => s.importData);
 
   const [editing, setEditing] = useState<EditingPlayer | null>(null);
+  const [importConfirm, setImportConfirm] = useState<ExportPayload | null>(null);
+  const [importError, setImportError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleExport() {
+    const payload: ExportPayload = { version: 1, players, games };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pivot-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = '';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string) as ExportPayload;
+        if (!Array.isArray(parsed.players) || !Array.isArray(parsed.games)) {
+          setImportError('Invalid backup file — missing players or games.');
+          return;
+        }
+        setImportError('');
+        setImportConfirm(parsed);
+      } catch {
+        setImportError('Could not read file. Make sure it\'s a valid Pivot backup.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function confirmImport() {
+    if (!importConfirm) return;
+    importData(importConfirm);
+    setImportConfirm(null);
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -156,6 +201,34 @@ export default function RosterPage() {
           {players.length} player{players.length !== 1 ? 's' : ''}
         </p>
       </div>
+
+      {/* Export / Import */}
+      <div className="flex gap-2 px-4 pt-4 pb-2 flex-shrink-0">
+        <button
+          onClick={handleExport}
+          className="flex-1 flex items-center justify-center gap-2 border border-slate-200 bg-white text-slate-700 text-sm font-semibold py-2.5 rounded-xl"
+        >
+          <Download size={15} />
+          Export backup
+        </button>
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="flex-1 flex items-center justify-center gap-2 border border-slate-200 bg-white text-slate-700 text-sm font-semibold py-2.5 rounded-xl"
+        >
+          <Upload size={15} />
+          Import backup
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,application/json"
+          className="hidden"
+          onChange={handleImportFile}
+        />
+      </div>
+      {importError && (
+        <p className="px-4 pb-2 text-xs text-red-500">{importError}</p>
+      )}
 
       {/* Player list */}
       <div className="flex-1 overflow-y-auto pb-24 p-4 space-y-2">
@@ -224,6 +297,41 @@ export default function RosterPage() {
           ))
         )}
       </div>
+
+      {/* Import confirmation */}
+      {importConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setImportConfirm(null)} />
+          <div className="relative w-full bg-white rounded-t-2xl p-5 pb-8 space-y-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Replace all data?</h2>
+              <button onClick={() => setImportConfirm(null)} className="p-1 text-slate-400"><X size={20} /></button>
+            </div>
+            <p className="text-sm text-slate-600">
+              This will overwrite your current{' '}
+              <strong>{players.length} player{players.length !== 1 ? 's' : ''}</strong> and{' '}
+              <strong>{games.length} game{games.length !== 1 ? 's' : ''}</strong> with the backup containing{' '}
+              <strong>{importConfirm.players.length} player{importConfirm.players.length !== 1 ? 's' : ''}</strong> and{' '}
+              <strong>{importConfirm.games.length} game{importConfirm.games.length !== 1 ? 's' : ''}</strong>.
+            </p>
+            <p className="text-xs text-red-500 font-medium">This cannot be undone.</p>
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => setImportConfirm(null)}
+                className="flex-1 border border-slate-200 text-slate-700 font-semibold rounded-xl py-3"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmImport}
+                className="flex-1 bg-violet-600 text-white font-semibold rounded-xl py-3"
+              >
+                Yes, import
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit / add form */}
       {editing && (
